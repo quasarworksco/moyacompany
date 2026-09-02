@@ -78,9 +78,18 @@ Para cambiarla por una fotografía real, reemplaza ese archivo — idealmente **
 `https://moyacompany.dgp-link.com/propuesta.html`. **No está enlazada desde el sitio**
 y lleva `noindex, nofollow`, así que solo la ve quien tenga el enlace.
 
-Contiene el alcance del proyecto, las dos opciones de inversión (mensual y anual),
-la comparación a 12 meses y los datos de pago por Zelle. Tiene estilos de impresión,
-de modo que el botón «Descargar en PDF» genera un PDF limpio desde el navegador.
+El documento lo **emite DGP GROUP USA** y va dirigido a Moya & Company. Contiene el
+alcance del proyecto, las dos opciones de inversión (mensual y anual), la comparación a
+12 meses, los datos de pago por Zelle y el bloque de firma con la conformidad del cliente.
+Tiene estilos de impresión, de modo que el botón «Descargar en PDF» genera un PDF limpio
+desde el navegador.
+
+La confirmación se canaliza por WhatsApp al **+1 (239) 823-1738**. El correo
+`Carlosdevicente04@gmail.com` aparece únicamente como cuenta Zelle, con Carlos de Vicente
+como titular.
+
+La marca de DGP GROUP USA es un monograma tipográfico (`.dgp-mark` en `propuesta.css`).
+Si hay un logo real, se sustituye por un `<img>` en la barra superior, la firma y el pie.
 
 Las cifras están escritas directamente en el HTML. Si cambian, hay que actualizar:
 los importes de las dos tarjetas de plan, la tabla de comparación, la cifra de la

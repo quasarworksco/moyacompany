@@ -5,20 +5,29 @@
 
 .doc{background:linear-gradient(180deg,#ffffff 0%,#f2f6ff 40%,#ffffff 100%);min-height:100vh}
 
+/* ---------- marca DGP GROUP USA ---------- */
+.dgp-mark{display:grid;place-items:center;flex:0 0 auto;width:42px;height:42px;border-radius:13px;
+  font-size:.72rem;font-weight:700;letter-spacing:.04em;color:#fff;
+  background:linear-gradient(140deg,var(--navy) 0%,var(--blue) 70%,var(--blue-400) 130%);
+  box-shadow:0 12px 24px -12px rgba(6,48,184,.9),inset 0 1px 0 rgba(255,255,255,.35)}
+.dgp-mark--sm{width:36px;height:36px;border-radius:11px;font-size:.62rem}
+
 /* ---------- barra superior ---------- */
 .doc__top{position:sticky;top:0;z-index:50;padding:.85rem 0;
   background:rgba(255,255,255,.86);border-bottom:1px solid var(--line);
   backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
 .doc__top-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
-.doc__brand{display:flex;align-items:center;gap:.65rem;font-weight:700;color:var(--navy)}
-.doc__brand img{height:34px;width:auto}
-.doc__brand b{color:var(--blue-400)}
+.doc__issuer{display:flex;align-items:center;gap:.7rem}
+.doc__issuer-name{font-size:1.02rem;font-weight:700;letter-spacing:-.01em;color:var(--navy)}
+.doc__issuer-name b{font-weight:600;color:var(--blue-400)}
 .doc__top-right{display:flex;align-items:center;gap:1rem}
-.doc__tag{padding:.34rem .8rem;border-radius:99px;font-size:.72rem;font-weight:700;
-  letter-spacing:.14em;text-transform:uppercase;color:var(--blue);
-  background:var(--blue-100);border:1px solid rgba(51,101,250,.2)}
-.doc__back{font-size:.84rem;font-weight:500;color:var(--ink-soft)}
-.doc__back:hover{color:var(--blue)}
+.doc__for{display:grid;gap:.15rem;text-align:right}
+.doc__for > span{font-size:.66rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft)}
+.doc__for a{display:inline-flex;align-items:center;gap:.45rem;justify-content:flex-end;
+  font-size:.92rem;font-weight:600;color:var(--navy)}
+.doc__for img{height:24px;width:auto}
+.doc__for a:hover{color:var(--blue)}
 
 .doc__main{padding:clamp(2.5rem,6vw,4.5rem) 0 4rem}
 
@@ -105,6 +114,29 @@
 .compare__total td{border-bottom:0;font-weight:600;color:var(--navy);font-size:1rem}
 .compare__total b{color:var(--blue);font-size:1.12rem}
 
+/* ---------- firma ---------- */
+.signs{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.3rem;align-items:stretch}
+.sign{padding:1.8rem;display:grid;align-content:start;gap:.2rem}
+.sign__hi{margin:0;font-size:.72rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-soft)}
+.sign__scribble{margin:.9rem 0 0;font-family:"Caveat",cursive;font-weight:600;font-size:2.5rem;
+  line-height:1;color:var(--blue);transform:rotate(-2deg);transform-origin:left center}
+.sign__rule{margin:1rem 0 1.1rem;height:1px;background:var(--line)}
+.sign__rule--empty{margin-top:3.4rem}
+.sign__who{display:flex;align-items:center;gap:.8rem}
+.sign__who div{display:grid;gap:.1rem;min-width:0}
+.sign__who b{font-size:1rem;font-weight:600;color:var(--navy)}
+.sign__who em{font-style:normal;font-size:.78rem;font-weight:600;letter-spacing:.06em;color:var(--blue-400)}
+.sign__who a{font-size:.85rem;color:var(--ink-soft);overflow-wrap:anywhere}
+.sign__who a:hover{color:var(--blue)}
+.sign--client{background:linear-gradient(160deg,rgba(242,246,255,.95),rgba(255,255,255,.7))}
+.sign__fill{margin:1rem 0 0;font-size:.9rem;color:var(--ink-dim)}
+.sign__blank{display:inline-block;min-width:10rem;border-bottom:1px dashed rgba(9,30,110,.32);
+  vertical-align:baseline}
+.sign__blank--sm{min-width:7rem}
+.sign__date{font-size:.85rem;color:var(--ink-soft);margin-top:.35rem}
+.signs__note{margin:1.1rem 0 0;font-size:.82rem;color:var(--ink-soft)}
+
 /* ---------- pago ---------- */
 .pay{padding:1.8rem}
 .pay__row{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1.2rem;
@@ -119,6 +151,8 @@
   transition:background .3s,color .3s}
 .pay__copy:hover{background:var(--blue);color:#fff}
 .pay__copy.is-done{background:#16a34a;border-color:#16a34a;color:#fff}
+.pay__value--empty{font-weight:400;font-style:italic;color:var(--ink-soft)}
+.pay__for{font-style:normal;font-size:.85rem;font-weight:500;color:var(--ink-soft)}
 .pay__note{margin:1.2rem 0 0;font-size:.86rem;color:var(--ink-soft);line-height:1.65}
 
 /* ---------- cierre ---------- */
@@ -130,20 +164,28 @@
 .doc__cta p{margin:0;color:rgba(238,243,255,.82);max-width:38rem}
 .doc__cta p b{color:#fff}
 .doc__cta-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;margin-top:.9rem}
+.btn__wa{width:19px;height:19px;flex:0 0 auto;fill:currentColor;stroke:none}
 .doc__cta .btn--ghost{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);box-shadow:none}
 .doc__cta .btn--ghost:hover{background:rgba(255,255,255,.24)}
 
 /* ---------- pie ---------- */
-.doc__foot{padding:2rem 0 2.6rem;border-top:1px solid var(--line);background:#fff}
-.doc__foot-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem;
-  font-size:.82rem;color:var(--ink-soft)}
-.doc__foot p{margin:0}
-.doc__foot b{color:var(--blue)}
+.doc__foot{padding:2.2rem 0 2.8rem;border-top:1px solid var(--line);background:#fff}
+.doc__foot-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.2rem}
+.doc__foot-brand{display:flex;align-items:center;gap:.75rem}
+.doc__foot-name{margin:0;font-size:.98rem;font-weight:700;color:var(--navy)}
+.doc__foot-name b{font-weight:600;color:var(--blue-400)}
+.doc__foot-sub{margin:0;font-size:.8rem;color:var(--ink-soft)}
+.doc__foot-legal{margin:0;text-align:right;font-size:.78rem;line-height:1.7;color:var(--ink-soft)}
 
 /* ---------- responsive ---------- */
 @media (max-width:640px){
   .doc__top{position:static}
-  .doc__meta,.doc__card,.doc__hosting,.plan,.pay{padding:1.3rem}
+  .doc__meta,.doc__card,.doc__hosting,.plan,.pay,.sign{padding:1.3rem}
+  .doc__top-inner{gap:.7rem}
+  .doc__for{text-align:left}
+  .doc__for a{justify-content:flex-start}
+  .doc__foot-inner{flex-direction:column;align-items:flex-start}
+  .doc__foot-legal{text-align:left}
   .pay__label{flex:1 1 100%}
   .doc__cta-btns .btn{width:100%}
 }
@@ -157,7 +199,8 @@
   .glass{background:#fff !important;border:1px solid #dbe3f7 !important;
     box-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
   .doc__section,.doc__hero{break-inside:avoid;page-break-inside:avoid}
-  .plan,.doc__card,.compare,.pay{break-inside:avoid;page-break-inside:avoid}
+  .plan,.doc__card,.compare,.pay,.sign{break-inside:avoid;page-break-inside:avoid}
+  .sign--client{background:#fff !important}
   .doc__cta{background:#0630b8 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   .grad,.plan--best .plan__price b{-webkit-text-fill-color:#0630b8;color:#0630b8}
 }
