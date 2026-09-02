@@ -21,14 +21,17 @@ de la marca funcione como acento y no sature la página.
 ## Estructura
 
 ```
-index.html               Página completa (hero, servicios, tarifas, beneficios, cierre, contacto, footer)
+index.html               Página completa (hero, servicios, tarifas, beneficios, nosotros,
+                         cierre, contacto, footer) + meta Open Graph / Twitter y JSON-LD
 assets/css/styles.css    Estilos: glassmorfismo, animaciones, responsive
 assets/js/i18n.js        Diccionario ES / EN — aquí se editan TODOS los textos
 assets/js/main.js        Splash, menú, cambio de idioma, reveals, formulario
 assets/img/logo.png      Logo completo (marca + nombre) — splash screen
 assets/img/logo-mark.png Solo la marca — header, cierre y footer
 assets/img/favicon.png   Ícono de pestaña
-assets/img/hero.jpg      Fondo del hero (placeholder abstracto, ver abajo)
+assets/img/hero.jpg      Fondo del hero (ilustración de oficina, ver abajo)
+assets/img/og-image.jpg  Imagen de compartir (Open Graph / Twitter Card) 1200x630
+assets/img/veronica.jpg  Retrato de la sección Nosotros
 ```
 
 ## Cómo verlo
@@ -66,6 +69,20 @@ ventanas, estantes y tarjetas de UI flotantes. Va difuminada bajo un velo blanco
 
 Para cambiarla por una fotografía real, reemplaza ese archivo — idealmente **horizontal,
 1920×1100 px o más**. Si la foto es muy cargada u oscura, sube las opacidades del velo.
+
+## Compartir en redes
+
+En el `<head>` de `index.html` están las etiquetas **Open Graph** (Facebook, WhatsApp,
+LinkedIn, Instagram) y **Twitter Card** (`summary_large_image`), más un bloque
+**JSON-LD** de `ProfessionalService` para buscadores.
+
+Todas apuntan al dominio `https://moyacompany.dgp-link.com/`. **Si cambias de dominio,
+actualiza también esas URLs** — Open Graph exige rutas absolutas.
+
+La imagen que se ve al compartir es `assets/img/og-image.jpg` (1200×630). Se genera a
+partir del fondo del hero + el logo + el eslogan. Tras publicar cambios, puede hacer falta
+refrescar el caché con el [Sharing Debugger de Facebook](https://developers.facebook.com/tools/debug/)
+o el [Card Validator de X](https://cards-dev.twitter.com/validator).
 
 ## Cambiar textos
 

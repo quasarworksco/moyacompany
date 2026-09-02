@@ -75,6 +75,15 @@ window.MOYA_I18N = {
     "ben.3.t": "Mejores resultados",
     "ben.3.d": "Mejores resultados a través de procesos eficientes y organización.",
 
+    "about.eyebrow": "Nosotros",
+    "about.title": "Conoce a Veronica Moya, Fundadora y CEO",
+    "about.role": "Fundadora y CEO",
+    "about.p1": "Ingeniera industrial y asistente virtual con amplia experiencia, Veronica aporta a Moya & Co. una combinación única de pensamiento analítico, experiencia operativa y apoyo práctico para los negocios.",
+    "about.p2": "Después de años trabajando de forma remota con empresas de distintos países e industrias, identificó un reto común: los dueños de negocio necesitan apoyo confiable, pero también necesitan mejores sistemas y procesos para escalar de verdad.",
+    "about.p3": "De ahí nació Moya & Co. — una empresa creada para conectar a negocios de Estados Unidos con profesionales bilingües talentosos, ayudándolos a construir operaciones más organizadas, eficientes y escalables.",
+    "about.motto": "Personas. Procesos. Tecnología. Mejores negocios.",
+    "about.cta": "Trabajemos juntos",
+
     "quote.a": "Tienes la visión.",
     "quote.b": "Nosotros somos tu respaldo.",
     "quote.sub": "Moya & Company — Your Digital Right Hand!",
@@ -106,6 +115,7 @@ window.MOYA_I18N = {
     "form.body.message": "Mensaje",
 
     "footer.rights": "Todos los derechos reservados.",
+    "footer.by": "Desarrollado por",
     "footer.remote": "Servicio remoto"
   },
 
@@ -181,6 +191,15 @@ window.MOYA_I18N = {
     "ben.3.t": "Better Results",
     "ben.3.d": "Better results through efficient processes and organization.",
 
+    "about.eyebrow": "About us",
+    "about.title": "Meet Veronica Moya, Founder & CEO",
+    "about.role": "Founder & CEO",
+    "about.p1": "As an Industrial Engineer and experienced virtual assistant, Veronica brings a unique combination of analytical thinking, operational expertise, and hands-on business support to Moya & Co.",
+    "about.p2": "After years of working remotely with businesses across different countries and industries, she recognized a common challenge: business owners need reliable support, but they also need better systems and processes to truly scale.",
+    "about.p3": "That realization led to the creation of Moya & Co. — a company built around connecting U.S. businesses with talented bilingual professionals while helping them create more organized, efficient, and scalable operations.",
+    "about.motto": "People. Processes. Technology. Better Business.",
+    "about.cta": "Let's work together",
+
     "quote.a": "You have the vision.",
     "quote.b": "We are your backing.",
     "quote.sub": "Moya & Company — Your Digital Right Hand!",
@@ -212,6 +231,7 @@ window.MOYA_I18N = {
     "form.body.message": "Message",
 
     "footer.rights": "All rights reserved.",
+    "footer.by": "Developed by",
     "footer.remote": "Remote service"
   }
 };
