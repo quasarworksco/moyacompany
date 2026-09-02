@@ -57,12 +57,15 @@ redondeada, porque el azul oscuro del logo se perdería contra el fondo.
 
 Para actualizar el logo, reemplaza esos archivos manteniendo los mismos nombres.
 
-## Foto del hero
+## Fondo del hero
 
-`assets/img/hero.jpg` es un fondo abstracto generado como base. Para poner una foto real
-(oficina, equipo, servicio empresarial), reemplaza ese archivo — idealmente **1920×1100 px
-o más, horizontal**. Encima va un velo blanco (`.hero__veil` en `styles.css`) que mantiene
-el texto legible; si la foto es muy cargada u oscura, sube las opacidades de ese velo.
+`assets/img/hero.jpg` es una **ilustración de escena de oficina** hecha a medida en los
+colores de la marca: escritorios, monitor con gráfica, laptop, agente con auriculares,
+ventanas, estantes y tarjetas de UI flotantes. Va difuminada bajo un velo blanco
+(`.hero__veil` en `styles.css`) para que el texto siempre se lea.
+
+Para cambiarla por una fotografía real, reemplaza ese archivo — idealmente **horizontal,
+1920×1100 px o más**. Si la foto es muy cargada u oscura, sube las opacidades del velo.
 
 ## Cambiar textos
 

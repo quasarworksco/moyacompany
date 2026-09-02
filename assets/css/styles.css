@@ -71,7 +71,9 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 ::selection{background:var(--blue-400);color:#fff}
 :focus-visible{outline:2px solid var(--blue-400);outline-offset:3px;border-radius:10px}
 
-.container{position:relative;z-index:1;width:min(100% - 2.5rem,var(--container));margin-inline:auto}
+/* Márgenes laterales: crecen con el ancho para que el contenido no toque los bordes */
+.container{position:relative;z-index:1;
+  width:min(100% - clamp(2.75rem,10vw,9rem),var(--container));margin-inline:auto}
 
 /* ---------------------------------------------------------
    ORBES DECORATIVOS
@@ -237,8 +239,8 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 .hero__veil{position:absolute;inset:0;
   background:
     radial-gradient(62% 56% at 50% 46%,rgba(255,255,255,.90) 0%,rgba(255,255,255,.58) 56%,transparent 80%),
-    linear-gradient(180deg,rgba(255,255,255,.76) 0%,rgba(255,255,255,.58) 38%,
-                    rgba(238,243,255,.88) 84%,#eef3ff 100%)}
+    linear-gradient(180deg,rgba(255,255,255,.70) 0%,rgba(255,255,255,.48) 38%,
+                    rgba(238,243,255,.86) 84%,#eef3ff 100%)}
 .hero__grid{position:absolute;inset:0;
   background-image:linear-gradient(rgba(9,30,110,.035) 1px,transparent 1px),
                    linear-gradient(90deg,rgba(9,30,110,.035) 1px,transparent 1px);
@@ -247,7 +249,7 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   -webkit-mask-image:radial-gradient(110% 80% at 50% 0%,#000 20%,transparent 76%)}
 
 .hero__inner{display:grid;justify-items:center;text-align:center;
-  width:min(100% - 2.5rem,62rem);margin-inline:auto}
+  width:min(100% - clamp(2.75rem,10vw,9rem),62rem);margin-inline:auto}
 
 .chip{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem 1rem;border-radius:99px;
   font-size:.78rem;font-weight:500;color:var(--ink-dim);
@@ -512,7 +514,11 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
    RESPONSIVE
    --------------------------------------------------------- */
 @media (max-width:1024px){
-  .pricing{grid-template-columns:1fr;gap:2.2rem}
+  .pricing{grid-template-columns:1fr;gap:2.2rem;justify-items:center;text-align:center}
+  .pricing__sub{margin-inline:auto}
+  .pricing__cta{justify-content:center}
+  .pricing__list{width:100%}
+  .pricing__list li{text-align:left}
   .contact{grid-template-columns:1fr}
 }
 
