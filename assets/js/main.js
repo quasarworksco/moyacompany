@@ -141,7 +141,7 @@
   }
 
   /* ---------- 5. Nav activo según sección ------------------------------ */
-  var sections = ["services", "pricing", "benefits", "contact"]
+  var sections = ["services", "pricing", "benefits", "about", "contact"]
     .map(function (id) { return document.getElementById(id); })
     .filter(Boolean);
 
