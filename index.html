@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Moya &amp; Company — Your Digital Right Hand!</title>
 <meta name="description" data-i18n-attr="content" data-i18n="meta.description"
-      content="Moya &amp; Company — Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa." />
-<meta name="theme-color" content="#0630b8" />
+      content="Moya &amp; Company — Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa. Desde $6 la hora." />
+<meta name="theme-color" content="#ffffff" />
 <meta property="og:title" content="Moya &amp; Company — Your Digital Right Hand!" />
 <meta property="og:description" content="Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa." />
 <meta property="og:type" content="website" />
@@ -29,7 +29,8 @@
     <div class="splash__ring" aria-hidden="true">
       <span class="splash__ring-spin"></span>
       <span class="splash__ring-glow"></span>
-      <img src="assets/img/logo.svg" alt="Moya &amp; Company" class="splash__logo" id="splashLogo" />
+      <!-- LOGO: reemplazar assets/img/logo.svg por el logo definitivo -->
+      <img src="assets/img/logo.svg" alt="Moya &amp; Company" class="splash__logo" />
     </div>
     <p class="splash__name">Moya <span>&amp;</span> Company</p>
     <p class="splash__tag">Your Digital Right Hand!</p>
@@ -37,14 +38,6 @@
   </div>
 </div>
 
-<!-- ============ BACKGROUND FX ============ -->
-<div class="bg" aria-hidden="true">
-  <div class="bg__grid"></div>
-  <div class="bg__blob bg__blob--1"></div>
-  <div class="bg__blob bg__blob--2"></div>
-  <div class="bg__blob bg__blob--3"></div>
-  <div class="bg__noise"></div>
-</div>
 <div class="spotlight" id="spotlight" aria-hidden="true"></div>
 
 <!-- ============ HEADER ============ -->
@@ -57,8 +50,8 @@
 
     <nav class="nav" id="nav" aria-label="Main">
       <a href="#services" data-i18n="nav.services">Servicios</a>
+      <a href="#pricing" data-i18n="nav.pricing">Tarifas</a>
       <a href="#benefits" data-i18n="nav.benefits">Beneficios</a>
-      <a href="#about" data-i18n="nav.about">Nosotros</a>
       <a href="#contact" data-i18n="nav.contact">Contacto</a>
     </nav>
 
@@ -78,8 +71,15 @@
 
 <main id="top">
 
-  <!-- ============ HERO ============ -->
+  <!-- ============ HERO (claro) ============ -->
   <section class="hero">
+    <div class="hero__decor" aria-hidden="true">
+      <span class="orb orb--1"></span>
+      <span class="orb orb--2"></span>
+      <span class="orb orb--3"></span>
+      <span class="hero__grid"></span>
+    </div>
+
     <div class="container hero__inner">
       <div class="hero__copy">
         <span class="chip reveal" data-i18n="hero.chip">✦ Soporte digital para negocios que crecen</span>
@@ -92,6 +92,12 @@
         <p class="hero__sub reveal" data-delay="2" data-i18n="hero.sub">
           Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa.
         </p>
+
+        <a class="price-badge reveal" data-delay="2" href="#pricing">
+          <span class="price-badge__star" aria-hidden="true">✦</span>
+          <span data-i18n="price.badge">Desde $6 la hora</span>
+          <em aria-hidden="true">→</em>
+        </a>
 
         <div class="hero__cta reveal" data-delay="3">
           <a class="btn btn--primary" href="#contact">
@@ -109,12 +115,11 @@
       </div>
 
       <aside class="hero__card glass reveal" data-delay="2" aria-label="Moya &amp; Company">
-        <div class="hero__card-glow" aria-hidden="true"></div>
         <div class="hero__card-top">
           <img src="assets/img/logo.svg" alt="" class="hero__card-logo" />
           <div>
             <p class="hero__card-name">Moya &amp; Company</p>
-            <p class="hero__card-role" data-i18n="hero.card.role">Digital Operations Partner</p>
+            <p class="hero__card-role" data-i18n="hero.card.role">Tu mano derecha digital</p>
           </div>
           <span class="dot-live" title="online" aria-hidden="true"></span>
         </div>
@@ -124,10 +129,16 @@
         </p>
 
         <ul class="hero__card-list">
-          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l1">Call Center &amp; Customer Service</span></li>
-          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l2">Social Media &amp; Virtual Assistance</span></li>
-          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l3">CRM Structure &amp; SOPs</span></li>
+          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l1">Call Center y Customer Service</span></li>
+          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l2">Redes sociales y asistencia virtual</span></li>
+          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l3">Estructura de CRM y SOPs</span></li>
         </ul>
+
+        <div class="hero__card-price">
+          <span data-i18n="price.from">Desde</span>
+          <strong>$6</strong>
+          <span data-i18n="price.hour">/ hora</span>
+        </div>
 
         <div class="hero__card-actions">
           <a class="mini-btn" href="https://wa.me/17133827990" target="_blank" rel="noopener">
@@ -152,8 +163,8 @@
     </div>
   </div>
 
-  <!-- ============ SERVICES ============ -->
-  <section class="section" id="services">
+  <!-- ============ SERVICIOS (blanco) ============ -->
+  <section class="section section--soft" id="services">
     <div class="container">
       <header class="section__head reveal">
         <span class="eyebrow" data-i18n="services.eyebrow">Servicios</span>
@@ -225,8 +236,42 @@
     </div>
   </section>
 
-  <!-- ============ BENEFITS ============ -->
-  <section class="section section--tight" id="benefits">
+  <!-- ============ TARIFAS (azul) ============ -->
+  <section class="section section--dark on-dark" id="pricing">
+    <div class="section__decor" aria-hidden="true">
+      <span class="orb orb--d1"></span>
+      <span class="orb orb--d2"></span>
+    </div>
+    <div class="container pricing">
+      <div class="pricing__copy reveal">
+        <span class="eyebrow" data-i18n="price.eyebrow">Tarifas</span>
+        <h2 class="pricing__title">
+          <span data-i18n="price.title.a">Desde</span>
+          <span class="pricing__amount">$6</span>
+          <span data-i18n="price.title.b">la hora</span>
+        </h2>
+        <p class="pricing__sub" data-i18n="price.sub">Trabajamos con planes flexibles según las horas que necesites. Cuéntanos cómo funciona tu operación y armamos una propuesta a tu medida.</p>
+        <div class="pricing__cta">
+          <a class="btn btn--white" href="#contact">
+            <span data-i18n="price.cta">Solicitar propuesta</span>
+            <svg viewBox="0 0 24 24" class="btn__ico" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="https://wa.me/17133827990" target="_blank" rel="noopener" data-i18n="price.cta2">Escribir por WhatsApp</a>
+        </div>
+        <p class="pricing__note" data-i18n="price.note">* Tarifa inicial. El precio final depende del servicio y del volumen de horas.</p>
+      </div>
+
+      <ul class="pricing__list reveal" data-delay="2">
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f1">Sin contratos rígidos: pagas por las horas que usas.</span></li>
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f2">Equipo bilingüe español / inglés.</span></li>
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f3">Puedes combinar varios servicios en un mismo plan.</span></li>
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f4">Reportes y comunicación directa contigo.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ BENEFICIOS (gris claro) ============ -->
+  <section class="section section--white" id="benefits">
     <div class="container">
       <header class="section__head reveal">
         <span class="eyebrow" data-i18n="ben.eyebrow">El impacto</span>
@@ -261,24 +306,27 @@
     </div>
   </section>
 
-  <!-- ============ QUOTE / ABOUT ============ -->
-  <section class="section" id="about">
+  <!-- ============ CIERRE (panel azul) ============ -->
+  <section class="section section--soft" id="about">
     <div class="container">
-      <div class="quote glass reveal">
-        <div class="quote__glow" aria-hidden="true"></div>
+      <div class="quote on-dark reveal">
+        <div class="quote__decor" aria-hidden="true">
+          <span class="orb orb--d1"></span>
+          <span class="orb orb--d2"></span>
+        </div>
         <img src="assets/img/logo.svg" alt="" class="quote__logo" />
         <p class="quote__text">
           <span data-i18n="quote.a">Tienes la visión.</span>
-          <span class="grad" data-i18n="quote.b">Nosotros somos tu respaldo.</span>
+          <span class="quote__accent" data-i18n="quote.b">Nosotros somos tu respaldo.</span>
         </p>
         <p class="quote__sub" data-i18n="quote.sub">Moya &amp; Company — Your Digital Right Hand!</p>
-        <a class="btn btn--primary" href="#contact" data-i18n="quote.cta">Empecemos hoy</a>
+        <a class="btn btn--white" href="#contact" data-i18n="quote.cta">Empecemos hoy</a>
       </div>
     </div>
   </section>
 
-  <!-- ============ CONTACT ============ -->
-  <section class="section" id="contact">
+  <!-- ============ CONTACTO (blanco) ============ -->
+  <section class="section section--white" id="contact">
     <div class="container">
       <header class="section__head reveal">
         <span class="eyebrow" data-i18n="contact.eyebrow">Contacto</span>
@@ -378,8 +426,8 @@
   </section>
 </main>
 
-<!-- ============ FOOTER ============ -->
-<footer class="footer">
+<!-- ============ FOOTER (azul profundo) ============ -->
+<footer class="footer on-dark">
   <div class="container footer__inner">
     <div class="footer__brand">
       <img src="assets/img/logo.svg" alt="" class="brand__logo" />
@@ -391,6 +439,7 @@
 
     <nav class="footer__nav" aria-label="Footer">
       <a href="#services" data-i18n="nav.services">Servicios</a>
+      <a href="#pricing" data-i18n="nav.pricing">Tarifas</a>
       <a href="#benefits" data-i18n="nav.benefits">Beneficios</a>
       <a href="#contact" data-i18n="nav.contact">Contacto</a>
     </nav>

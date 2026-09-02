@@ -4,9 +4,10 @@
    ========================================================= */
 window.MOYA_I18N = {
   es: {
-    "meta.description": "Moya & Company — Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa.",
+    "meta.description": "Moya & Company — Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa. Desde $6 la hora.",
 
     "nav.services": "Servicios",
+    "nav.pricing": "Tarifas",
     "nav.benefits": "Beneficios",
     "nav.about": "Nosotros",
     "nav.contact": "Contacto",
@@ -47,6 +48,21 @@ window.MOYA_I18N = {
     "svc.5.d": "Diseñamos y organizamos tu sistema CRM para centralizar datos, automatizar procesos y mejorar la gestión de clientes.",
     "svc.6.t": "SOP",
     "svc.6.d": "Creamos Procedimientos Operativos Estándar (SOPs) para estandarizar las operaciones y garantizar consistencia y calidad.",
+
+    "price.badge": "Desde $6 la hora",
+    "price.from": "Desde",
+    "price.hour": "/ hora",
+    "price.eyebrow": "Tarifas",
+    "price.title.a": "Desde",
+    "price.title.b": "la hora",
+    "price.sub": "Trabajamos con planes flexibles según las horas que necesites. Cuéntanos cómo funciona tu operación y armamos una propuesta a tu medida.",
+    "price.cta": "Solicitar propuesta",
+    "price.cta2": "Escribir por WhatsApp",
+    "price.note": "* Tarifa inicial. El precio final depende del servicio y del volumen de horas.",
+    "price.f1": "Sin contratos rígidos: pagas por las horas que usas.",
+    "price.f2": "Equipo bilingüe español / inglés.",
+    "price.f3": "Puedes combinar varios servicios en un mismo plan.",
+    "price.f4": "Reportes y comunicación directa contigo.",
 
     "ben.eyebrow": "El impacto",
     "ben.title": "Lo que ganas al delegar",
@@ -92,9 +108,10 @@ window.MOYA_I18N = {
   },
 
   en: {
-    "meta.description": "Moya & Company — Digital solutions to optimize your business, save time and focus on what really matters.",
+    "meta.description": "Moya & Company — Digital solutions to optimize your business, save time and focus on what really matters. Starting from $6 an hour.",
 
     "nav.services": "Services",
+    "nav.pricing": "Pricing",
     "nav.benefits": "Benefits",
     "nav.about": "About",
     "nav.contact": "Contact",
@@ -135,6 +152,21 @@ window.MOYA_I18N = {
     "svc.5.d": "We design and organize your CRM system to centralize data, automate processes and improve customer management.",
     "svc.6.t": "SOP",
     "svc.6.d": "We create Standard Operating Procedures (SOPs) to standardize operations and ensure consistency and quality.",
+
+    "price.badge": "Starting from $6 an hour",
+    "price.from": "From",
+    "price.hour": "/ hour",
+    "price.eyebrow": "Pricing",
+    "price.title.a": "Starting from",
+    "price.title.b": "an hour",
+    "price.sub": "We work with flexible plans based on the hours you need. Tell us how your operation runs and we'll put together a proposal that fits.",
+    "price.cta": "Request a proposal",
+    "price.cta2": "Message us on WhatsApp",
+    "price.note": "* Starting rate. Final pricing depends on the service and the volume of hours.",
+    "price.f1": "No rigid contracts: you pay for the hours you use.",
+    "price.f2": "Bilingual English / Spanish team.",
+    "price.f3": "You can combine several services in one plan.",
+    "price.f4": "Reports and direct communication with you.",
 
     "ben.eyebrow": "The impact",
     "ben.title": "What you gain by delegating",

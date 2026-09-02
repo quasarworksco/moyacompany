@@ -1,12 +1,27 @@
 # Moya &amp; Company — Sitio web
 
 **Your Digital Right Hand!** · Sitio estático bilingüe (español / inglés) con glassmorfismo,
-splash screen y diseño premium en la paleta de la marca.
+splash screen y diseño premium sobre base blanca, con secciones alternadas para que el azul
+de la marca funcione como acento y no sature la página.
+
+### Ritmo de secciones
+
+| Sección | Fondo |
+| --- | --- |
+| Splash | Blanco con aurora azul suave |
+| Hero | Blanco → hielo (`#f3f7ff`) |
+| Marquee | Banda hielo |
+| Servicios | Hielo degradado |
+| **Tarifas — desde $6 la hora** | Azul profundo (`#04123f → #0630b8 → #3365fa`) |
+| Beneficios | Blanco |
+| Cierre | Hielo, con panel azul redondeado |
+| Contacto | Blanco |
+| Footer | Azul profundo |
 
 ## Estructura
 
 ```
-index.html               Página completa (hero, servicios, beneficios, cierre, contacto, footer)
+index.html               Página completa (hero, servicios, tarifas, beneficios, cierre, contacto, footer)
 assets/css/styles.css    Estilos: glassmorfismo, animaciones, responsive
 assets/js/i18n.js        Diccionario ES / EN — aquí se editan TODOS los textos
 assets/js/main.js        Splash, menú, cambio de idioma, reveals, formulario
@@ -44,6 +59,13 @@ el valor en **ambos** idiomas.
 
 El idioma se detecta automáticamente del navegador y se guarda en `localStorage`;
 el visitante puede cambiarlo con el switch ES / EN del encabezado.
+
+## Tarifa
+
+El precio de entrada (**Desde $6 la hora / Starting from $6 an hour**) aparece en tres lugares:
+la píldora bajo el subtítulo del hero, la tarjeta del hero y la sección `#pricing`.
+Para cambiarlo, edita las claves `price.*` en `assets/js/i18n.js` y el `$6` que está escrito
+directamente en `index.html` (tarjeta del hero y título de tarifas).
 
 ## Datos de contacto
 
