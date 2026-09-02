@@ -81,8 +81,6 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   background:radial-gradient(circle,rgba(51,101,250,.22),transparent 68%);animation:float1 24s ease-in-out infinite}
 .orb--2{width:38vw;height:38vw;max-width:560px;max-height:560px;right:-10vw;top:6vh;
   background:radial-gradient(circle,rgba(6,48,184,.24),transparent 68%);animation:float2 28s ease-in-out infinite}
-.orb--3{width:30vw;height:30vw;max-width:420px;max-height:420px;left:38vw;bottom:-16vw;
-  background:radial-gradient(circle,rgba(106,146,255,.28),transparent 70%);animation:float1 32s ease-in-out infinite reverse}
 .orb--d1{width:520px;height:520px;left:-140px;top:-220px;
   background:radial-gradient(circle,rgba(102,150,255,.55),transparent 66%);animation:float1 26s ease-in-out infinite}
 .orb--d2{width:460px;height:460px;right:-160px;bottom:-220px;
@@ -120,26 +118,19 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
              radial-gradient(560px 560px at 72% 74%,rgba(6,48,184,.16),transparent 64%);
   animation:auroraPulse 4s ease-in-out infinite}
 @keyframes auroraPulse{0%,100%{opacity:.8;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
-.splash__inner{position:relative;display:grid;justify-items:center;gap:.35rem;text-align:center;padding:2rem}
-.splash__ring{position:relative;width:150px;height:150px;display:grid;place-items:center;margin-bottom:1.5rem}
-.splash__ring-spin{position:absolute;inset:0;border-radius:50%;
-  background:conic-gradient(from 0deg,transparent 0 62%,var(--blue-400) 84%,transparent 100%);
-  -webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
-  mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));
-  animation:spin 1.5s linear infinite}
-.splash__ring-glow{position:absolute;inset:-14px;border-radius:50%;
-  background:radial-gradient(circle,rgba(51,101,250,.22),transparent 66%);
-  animation:auroraPulse 2.6s ease-in-out infinite}
-.splash__logo{width:96px;height:96px;object-fit:contain;
-  filter:drop-shadow(0 14px 30px rgba(9,30,110,.22));
+.splash__inner{position:relative;display:grid;justify-items:center;text-align:center;padding:2rem}
+.splash__logoWrap{position:relative;display:grid;place-items:center}
+.splash__glow{position:absolute;width:min(78vw,460px);height:240px;border-radius:50%;
+  background:radial-gradient(circle,rgba(51,101,250,.22),transparent 68%);
+  animation:auroraPulse 2.8s ease-in-out infinite}
+.splash__logo{position:relative;width:min(72vw,330px);height:auto;
+  filter:drop-shadow(0 18px 40px rgba(9,30,110,.22));
   animation:logoIn 1.2s var(--ease) both}
 @keyframes spin{to{transform:rotate(360deg)}}
-@keyframes logoIn{0%{opacity:0;transform:scale(.72)}100%{opacity:1;transform:scale(1)}}
-.splash__name{margin:0;font-weight:700;font-size:clamp(1.5rem,4.5vw,2rem);color:var(--navy)}
-.splash__name span{color:var(--blue-400)}
-.splash__tag{margin:.1rem 0 0;font-weight:400;letter-spacing:.28em;text-transform:uppercase;
-  font-size:.68rem;color:var(--ink-soft);animation:up .9s .3s var(--ease) both}
-.splash__bar{margin-top:1.6rem;width:180px;height:3px;border-radius:99px;background:var(--blue-100);overflow:hidden}
+@keyframes logoIn{0%{opacity:0;transform:scale(.86) translateY(10px)}100%{opacity:1;transform:none}}
+.splash__tag{margin:1.5rem 0 0;font-weight:500;letter-spacing:.26em;text-transform:uppercase;
+  font-size:.68rem;color:var(--ink-soft);animation:up .9s .35s var(--ease) both}
+.splash__bar{margin-top:1.5rem;width:180px;height:3px;border-radius:99px;background:var(--blue-100);overflow:hidden}
 .splash__bar i{display:block;height:100%;width:40%;border-radius:99px;
   background:linear-gradient(90deg,var(--blue),var(--blue-400));animation:load 1.5s var(--ease) infinite}
 @keyframes load{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
@@ -156,7 +147,7 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 .header__inner{display:flex;align-items:center;gap:1.25rem}
 
 .brand{display:flex;align-items:center;gap:.7rem;font-weight:700;letter-spacing:-.01em;flex:0 0 auto;color:var(--navy)}
-.brand__logo{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 8px 18px rgba(9,30,110,.22))}
+.brand__logo{height:40px;width:auto;object-fit:contain;filter:drop-shadow(0 8px 16px rgba(9,30,110,.20))}
 .brand__text{font-size:1.02rem;white-space:nowrap}
 .brand__amp{color:var(--blue-400)}
 
@@ -235,36 +226,47 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 .mini-btn:hover{background:#fff;transform:translateY(-2px)}
 
 /* ---------------------------------------------------------
-   HERO (sección clara)
+   HERO (sección clara, contenido centrado, foto de fondo)
    --------------------------------------------------------- */
-.hero{position:relative;padding:clamp(8rem,17vh,11rem) 0 4.5rem;overflow:hidden;
-  background:linear-gradient(180deg,#ffffff 0%,#f3f7ff 55%,#eef3ff 100%)}
-.hero__decor{position:absolute;inset:0;overflow:hidden}
+.hero{position:relative;overflow:hidden;background:#eef3ff;
+  padding:clamp(8.5rem,18vh,12rem) 0 clamp(4rem,8vw,6rem)}
+.hero__bg{position:absolute;inset:0;overflow:hidden}
+.hero__photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+/* Velo: mantiene el texto legible y deja ver la foto en los bordes.
+   Si la foto definitiva es muy cargada, sube las opacidades. */
+.hero__veil{position:absolute;inset:0;
+  background:
+    radial-gradient(62% 56% at 50% 46%,rgba(255,255,255,.90) 0%,rgba(255,255,255,.58) 56%,transparent 80%),
+    linear-gradient(180deg,rgba(255,255,255,.76) 0%,rgba(255,255,255,.58) 38%,
+                    rgba(238,243,255,.88) 84%,#eef3ff 100%)}
 .hero__grid{position:absolute;inset:0;
   background-image:linear-gradient(rgba(9,30,110,.035) 1px,transparent 1px),
                    linear-gradient(90deg,rgba(9,30,110,.035) 1px,transparent 1px);
   background-size:72px 72px;
   mask-image:radial-gradient(110% 80% at 50% 0%,#000 20%,transparent 76%);
   -webkit-mask-image:radial-gradient(110% 80% at 50% 0%,#000 20%,transparent 76%)}
-.hero__inner{display:grid;grid-template-columns:1.15fr .85fr;gap:3.5rem;align-items:center}
+
+.hero__inner{display:grid;justify-items:center;text-align:center;
+  width:min(100% - 2.5rem,62rem);margin-inline:auto}
 
 .chip{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem 1rem;border-radius:99px;
   font-size:.78rem;font-weight:500;color:var(--ink-dim);
-  background:rgba(255,255,255,.8);border:1px solid var(--line);
+  background:rgba(255,255,255,.85);border:1px solid var(--line);
   box-shadow:0 10px 24px -18px rgba(9,30,110,.6);
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 
-.hero__title{margin:1.4rem 0 0;font-weight:700;line-height:1.02;letter-spacing:-.035em;
-  color:var(--navy);font-size:clamp(2.85rem,7.6vw,5.4rem)}
-.hero__title-line{display:block}
+.hero__title{margin:1.5rem 0 0;font-weight:700;line-height:1.06;letter-spacing:-.035em;
+  color:var(--navy);font-size:clamp(2.6rem,7vw,5.2rem)}
+/* el padding evita que background-clip:text recorte las colas de la "g" */
+.hero__title-line{display:block;padding-bottom:.12em;margin-bottom:-.10em}
 .grad{background:linear-gradient(100deg,var(--blue) 0%,var(--blue-400) 55%,var(--blue-300) 100%);
   -webkit-background-clip:text;background-clip:text;color:transparent}
 
-.hero__sub{margin:1.4rem 0 0;max-width:34rem;font-size:clamp(1rem,1.6vw,1.14rem);color:var(--ink-dim);font-weight:400}
+.hero__sub{margin:1.3rem auto 0;max-width:40rem;font-size:clamp(1rem,1.6vw,1.14rem);color:var(--ink-dim)}
 
-.price-badge{display:inline-flex;align-items:center;gap:.55rem;margin-top:1.6rem;
-  padding:.6rem 1.1rem .6rem .85rem;border-radius:99px;font-size:.92rem;font-weight:600;color:var(--blue);
-  background:linear-gradient(135deg,rgba(229,236,255,.95),rgba(255,255,255,.9));
+.price-badge{display:inline-flex;align-items:center;gap:.55rem;margin-top:1.7rem;
+  padding:.6rem 1.1rem .6rem .9rem;border-radius:99px;font-size:.92rem;font-weight:600;color:var(--blue);
+  background:linear-gradient(135deg,rgba(229,236,255,.96),rgba(255,255,255,.94));
   border:1px solid rgba(51,101,250,.28);
   box-shadow:0 14px 30px -18px rgba(6,48,184,.9);
   transition:transform .35s var(--ease),box-shadow .35s var(--ease)}
@@ -273,38 +275,31 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 .price-badge:hover{transform:translateY(-2px);box-shadow:0 20px 38px -20px rgba(6,48,184,1)}
 .price-badge:hover em{transform:translateX(4px)}
 
-.hero__cta{display:flex;flex-wrap:wrap;gap:.85rem;margin-top:1.6rem}
+.hero__cta{display:flex;flex-wrap:wrap;justify-content:center;gap:.85rem;margin-top:1.7rem}
 
-.hero__meta{display:flex;flex-wrap:wrap;gap:2.4rem;list-style:none;margin:2.8rem 0 0;padding:0}
-.hero__meta li{display:grid;gap:.1rem}
-.hero__meta strong{font-size:1.7rem;font-weight:700;line-height:1;
+.hero__call{margin:1.15rem 0 0;font-size:.88rem;color:var(--ink-soft)}
+.hero__call a{margin-left:.3rem;font-weight:600;color:var(--blue);
+  border-bottom:1px solid rgba(6,48,184,.28);transition:border-color .3s}
+.hero__call a:hover{border-color:var(--blue)}
+
+.hero__meta{list-style:none;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+  width:min(100%,44rem);margin:2.9rem 0 0;padding:1.15rem .4rem;border-radius:24px}
+.hero__meta li{display:grid;gap:.15rem;justify-items:center;padding:.15rem .8rem;
+  border-right:1px solid var(--line)}
+.hero__meta li:last-child{border-right:0}
+.hero__meta strong{font-size:1.6rem;font-weight:700;line-height:1.15;
   background:linear-gradient(120deg,var(--blue),var(--blue-400));
   -webkit-background-clip:text;background-clip:text;color:transparent}
-.hero__meta span{font-size:.8rem;color:var(--ink-soft);letter-spacing:.03em}
+.hero__meta span{font-size:.78rem;color:var(--ink-soft);letter-spacing:.02em;line-height:1.35}
 
-.hero__card{padding:1.9rem;display:grid;gap:1.15rem}
-.hero__card-top{display:flex;align-items:center;gap:.85rem}
-.hero__card-logo{width:46px;height:46px;object-fit:contain}
-.hero__card-name{margin:0;font-weight:600;font-size:1rem;color:var(--navy)}
-.hero__card-role{margin:0;font-size:.76rem;color:var(--ink-soft)}
-.dot-live{width:9px;height:9px;border-radius:50%;background:#22c55e;margin-left:auto;flex:0 0 auto;
-  box-shadow:0 0 0 0 rgba(34,197,94,.55);animation:pulse 2.2s infinite}
-@keyframes pulse{70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
-
-.hero__card-quote{margin:0;font-size:1.1rem;font-weight:600;line-height:1.45;letter-spacing:-.01em;color:var(--navy)}
-.hero__card-list{list-style:none;margin:0;padding:0;display:grid;gap:.6rem}
-.hero__card-list li{display:flex;align-items:center;gap:.65rem;font-size:.88rem;color:var(--ink-dim)}
 .tick{width:20px;height:20px;flex:0 0 auto;border-radius:50%;position:relative;
   background:linear-gradient(135deg,var(--blue),var(--blue-400));box-shadow:0 6px 14px -6px rgba(6,48,184,.9)}
 .tick::after{content:"";position:absolute;left:6.5px;top:5px;width:5px;height:9px;
   border:2px solid #fff;border-top:0;border-left:0;transform:rotate(42deg)}
 
-.hero__card-price{display:flex;align-items:baseline;gap:.4rem;padding:.75rem 1.1rem;border-radius:16px;
-  background:linear-gradient(135deg,var(--blue),var(--blue-400));color:#fff;
-  box-shadow:0 16px 32px -18px rgba(6,48,184,1);font-size:.86rem;font-weight:500}
-.hero__card-price strong{font-size:1.5rem;font-weight:700;line-height:1}
-
-.hero__card-actions{display:flex;flex-wrap:wrap;gap:.6rem}
+.dot-live{width:9px;height:9px;border-radius:50%;background:#22c55e;flex:0 0 auto;
+  box-shadow:0 0 0 0 rgba(34,197,94,.55);animation:pulse 2.2s infinite}
+@keyframes pulse{70%{box-shadow:0 0 0 12px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
 
 /* ---------------------------------------------------------
    MARQUEE
@@ -406,8 +401,9 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   background:linear-gradient(150deg,#04123f 0%,#0630b8 60%,#3365fa 130%);
   box-shadow:0 40px 80px -34px rgba(6,48,184,.8)}
 .quote__decor{position:absolute;inset:0;overflow:hidden}
-.quote__logo{position:relative;width:64px;height:64px;object-fit:contain;
-  filter:drop-shadow(0 12px 26px rgba(0,0,0,.35))}
+.quote__plate{position:relative;display:grid;place-items:center;width:98px;height:98px;border-radius:28px;
+  background:#fff;box-shadow:0 22px 44px -18px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,1)}
+.quote__plate img{width:66px;height:auto}
 .quote__text{position:relative;margin:0;font-weight:700;letter-spacing:-.03em;line-height:1.15;color:#fff;
   font-size:clamp(1.7rem,4.6vw,3.1rem);max-width:20ch}
 .quote__text span{display:block}
@@ -460,10 +456,13 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 /* ---------------------------------------------------------
    FOOTER
    --------------------------------------------------------- */
-.footer{position:relative;padding:3.2rem 0 2rem;
+.footer{position:relative;padding:3.2rem 0 clamp(5rem,7vw,6rem);
   background:linear-gradient(160deg,#04123f 0%,#061c66 70%,#0630b8 140%)}
 .footer__inner{display:flex;flex-wrap:wrap;align-items:center;gap:1.6rem;justify-content:space-between}
-.footer__brand{display:flex;align-items:center;gap:.85rem}
+.footer__brand{display:flex;align-items:center;gap:.9rem}
+.footer__plate{display:grid;place-items:center;flex:0 0 auto;width:54px;height:54px;border-radius:16px;
+  background:#fff;box-shadow:0 14px 28px -16px rgba(0,0,0,.7)}
+.footer__plate img{width:38px;height:auto}
 .footer__name{margin:0;font-weight:700;color:#fff}
 .footer__tag{margin:0;font-size:.78rem;color:var(--blue-300);letter-spacing:.06em}
 .footer__nav{display:flex;flex-wrap:wrap;gap:1.3rem;font-size:.9rem;color:var(--ink-dim)}
@@ -481,13 +480,19 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 /* ---------------------------------------------------------
    FAB
    --------------------------------------------------------- */
-.fab{position:fixed;right:1.4rem;bottom:1.4rem;z-index:90;width:56px;height:56px;padding:15px;
-  border-radius:50%;color:#fff;background:linear-gradient(135deg,#25d366,#128c4b);
-  box-shadow:0 18px 34px -12px rgba(18,140,75,.8);
-  transform:translateY(120px);opacity:0;
-  transition:transform .5s var(--ease),opacity .5s,box-shadow .35s}
+.fab{position:fixed;right:1.5rem;bottom:1.5rem;z-index:90;
+  display:inline-flex;align-items:center;gap:.6rem;height:58px;padding:0 1.25rem 0 1rem;
+  border-radius:999px;color:#fff;font-weight:600;font-size:.92rem;
+  background:linear-gradient(140deg,#33d778 0%,#16b95c 52%,#0e8f48 100%);
+  box-shadow:0 18px 34px -14px rgba(14,143,72,.75),inset 0 1px 0 rgba(255,255,255,.4);
+  transform:translateY(140px);opacity:0;
+  transition:transform .5s var(--ease),opacity .5s,box-shadow .35s var(--ease)}
 .fab.is-on{transform:none;opacity:1}
-.fab:hover{box-shadow:0 24px 44px -14px rgba(18,140,75,.9);transform:translateY(-4px) scale(1.05)}
+.fab:hover{transform:translateY(-3px);box-shadow:0 26px 46px -16px rgba(14,143,72,.85),inset 0 1px 0 rgba(255,255,255,.5)}
+.fab__ring{position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  border:1px solid rgba(255,255,255,.34)}
+.fab__ico{width:25px;height:25px;flex:0 0 auto;fill:currentColor;stroke:none}
+.fab__label{white-space:nowrap}
 
 /* ---------------------------------------------------------
    REVEAL
@@ -507,8 +512,6 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
    RESPONSIVE
    --------------------------------------------------------- */
 @media (max-width:1024px){
-  .hero__inner{grid-template-columns:1fr;gap:2.6rem}
-  .hero__card{max-width:520px}
   .pricing{grid-template-columns:1fr;gap:2.2rem}
   .contact{grid-template-columns:1fr}
 }
@@ -528,11 +531,19 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 }
 
 @media (max-width:640px){
-  .hero{padding-top:7.5rem}
-  .hero__meta{gap:1.6rem}
-  .hero__meta strong{font-size:1.4rem}
+  .hero{padding-top:8rem}
+  .hero__meta{grid-template-columns:1fr;padding:.6rem 1rem}
+  .hero__meta li{border-right:0;border-bottom:1px solid var(--line);padding:.7rem .5rem}
+  .hero__meta li:last-child{border-bottom:0}
+  .hero__meta strong{font-size:1.35rem}
+  .hero__cta{width:100%}
+  .hero__cta .btn{flex:1 1 100%}
   .form__row{grid-template-columns:1fr}
-  .form,.hero__card{padding:1.4rem}
+  .form{padding:1.4rem}
+  .fab{right:1rem;bottom:1rem;height:54px;width:54px;padding:0;justify-content:center}
+  .fab__label{display:none}
+  .quote__plate{width:78px;height:78px;border-radius:22px}
+  .quote__plate img{width:52px}
   .card{padding:1.6rem 1.4rem 1.3rem}
   .pricing__list{padding:1.3rem}
   .brand__text{display:none}
