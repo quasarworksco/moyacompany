@@ -1,0 +1,163 @@
+/* =========================================================
+   Propuesta comercial — Moya & Company
+   Hereda tokens, tipografía y .glass de styles.css
+   ========================================================= */
+
+.doc{background:linear-gradient(180deg,#ffffff 0%,#f2f6ff 40%,#ffffff 100%);min-height:100vh}
+
+/* ---------- barra superior ---------- */
+.doc__top{position:sticky;top:0;z-index:50;padding:.85rem 0;
+  background:rgba(255,255,255,.86);border-bottom:1px solid var(--line);
+  backdrop-filter:blur(18px) saturate(160%);-webkit-backdrop-filter:blur(18px) saturate(160%)}
+.doc__top-inner{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+.doc__brand{display:flex;align-items:center;gap:.65rem;font-weight:700;color:var(--navy)}
+.doc__brand img{height:34px;width:auto}
+.doc__brand b{color:var(--blue-400)}
+.doc__top-right{display:flex;align-items:center;gap:1rem}
+.doc__tag{padding:.34rem .8rem;border-radius:99px;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--blue);
+  background:var(--blue-100);border:1px solid rgba(51,101,250,.2)}
+.doc__back{font-size:.84rem;font-weight:500;color:var(--ink-soft)}
+.doc__back:hover{color:var(--blue)}
+
+.doc__main{padding:clamp(2.5rem,6vw,4.5rem) 0 4rem}
+
+/* ---------- portada ---------- */
+.doc__hero{margin-bottom:clamp(3rem,7vw,5rem)}
+.doc__title{margin:.4rem 0 0;font-weight:700;letter-spacing:-.035em;line-height:1.08;color:var(--navy);
+  font-size:clamp(2.1rem,5.4vw,3.6rem)}
+.doc__lead{margin:1.1rem 0 0;max-width:44rem;color:var(--ink-dim);font-size:1.06rem}
+
+.doc__meta{margin-top:2.4rem;padding:1.6rem 1.8rem;display:grid;gap:1.4rem;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr))}
+.doc__meta div{display:grid;gap:.25rem}
+.doc__meta dt{font-size:.7rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.doc__meta dd{margin:0;font-size:1.02rem;font-weight:600;color:var(--navy);display:grid;gap:.1rem}
+.doc__meta dd span{font-size:.8rem;font-weight:400;color:var(--ink-soft)}
+.doc__meta-price{color:var(--blue) !important;font-size:1.5rem !important;font-weight:700 !important}
+
+/* ---------- secciones ---------- */
+.doc__section{margin-bottom:clamp(3rem,7vw,5rem)}
+.doc__head{max-width:48rem;margin-bottom:2rem}
+.doc__head h2{margin:.3rem 0 0;font-weight:700;letter-spacing:-.03em;line-height:1.15;color:var(--navy);
+  font-size:clamp(1.6rem,3.6vw,2.3rem)}
+.doc__head p{margin:.8rem 0 0;color:var(--ink-dim)}
+
+.doc__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.2rem;align-items:start}
+.doc__card{position:relative;padding:1.7rem 1.7rem 1.5rem}
+.doc__card-num{position:absolute;top:1.4rem;right:1.5rem;font-size:.75rem;font-weight:700;
+  letter-spacing:.1em;color:rgba(12,22,56,.16)}
+.doc__card h3{margin:0 0 1rem;font-size:1.12rem;font-weight:600;letter-spacing:-.01em;color:var(--navy)}
+
+.ticks{list-style:none;margin:0;padding:0;display:grid;gap:.7rem}
+.ticks li{position:relative;padding-left:1.9rem;font-size:.92rem;color:var(--ink-dim);line-height:1.55}
+.ticks li::before{content:"";position:absolute;left:0;top:.28em;width:19px;height:19px;border-radius:50%;
+  background:linear-gradient(135deg,var(--blue),var(--blue-400));box-shadow:0 5px 12px -6px rgba(6,48,184,.9)}
+.ticks li::after{content:"";position:absolute;left:6.2px;top:calc(.28em + 4px);width:5px;height:9px;
+  border:2px solid #fff;border-top:0;border-left:0;transform:rotate(42deg)}
+.ticks code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.85em;
+  padding:.1em .35em;border-radius:6px;background:var(--blue-100);color:var(--blue)}
+.ticks--two{grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:.9rem 2rem}
+
+.doc__hosting{padding:1.7rem 1.8rem}
+
+/* ---------- planes ---------- */
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:1.3rem;align-items:start}
+.plan{position:relative;padding:1.9rem 1.8rem 1.6rem;display:grid;gap:1.2rem}
+.plan__head h3{margin:0;font-size:1.02rem;font-weight:600;color:var(--ink-dim)}
+.plan__price{margin:.6rem 0 0;display:flex;align-items:baseline;gap:.45rem;color:var(--navy)}
+.plan__price b{font-size:clamp(2.4rem,6vw,3.1rem);font-weight:700;letter-spacing:-.04em;line-height:1}
+.plan__price span{font-size:.82rem;font-weight:500;color:var(--ink-soft)}
+.plan__note{margin:.45rem 0 0;font-size:.88rem;color:var(--ink-dim)}
+
+.plan__rows{list-style:none;margin:0;padding:0;display:grid;gap:.55rem}
+.plan__rows li{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;
+  font-size:.92rem;color:var(--ink-dim);padding-bottom:.55rem;border-bottom:1px solid var(--line)}
+.plan__rows b{font-weight:600;color:var(--navy);white-space:nowrap}
+.plan__total{border-bottom:0 !important;padding-top:.2rem;font-weight:600;color:var(--navy) !important}
+.plan__total b{font-size:1.15rem;color:var(--blue)}
+.plan__foot{margin:0;font-size:.85rem;color:var(--ink-soft);line-height:1.6}
+
+.plan--best{border-color:rgba(51,101,250,.42);
+  box-shadow:0 34px 64px -26px rgba(6,48,184,.45),inset 0 1px 0 rgba(255,255,255,1)}
+.plan--best::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:radial-gradient(80% 60% at 80% 0%,rgba(51,101,250,.12),transparent 70%)}
+.plan__flag{position:absolute;top:-13px;left:1.8rem;padding:.34rem .85rem;border-radius:99px;
+  font-size:.68rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#fff;
+  background:linear-gradient(135deg,var(--blue),var(--blue-400));
+  box-shadow:0 10px 22px -10px rgba(6,48,184,1)}
+.plan--best .plan__price b{background:linear-gradient(100deg,var(--blue),var(--blue-400));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.plan__foot--save{color:var(--ink-dim)}
+.plan__foot--save b{color:var(--blue)}
+
+/* ---------- comparación ---------- */
+.compare{margin-top:1.3rem;padding:.4rem .4rem 0;overflow-x:auto}
+.compare table{width:100%;border-collapse:collapse;min-width:480px}
+.compare caption{padding:1.2rem 1.4rem .8rem;text-align:left;font-size:.72rem;font-weight:700;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--ink-soft)}
+.compare th,.compare td{padding:.85rem 1.4rem;text-align:right;font-size:.92rem;color:var(--ink-dim)}
+.compare th:first-child,.compare td:first-child{text-align:left}
+.compare thead th{font-size:.74rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--navy);border-bottom:1px solid var(--line)}
+.compare tbody td{border-bottom:1px solid var(--line)}
+.compare em{font-style:normal;font-size:.82em;color:var(--ink-soft);margin-left:.3rem}
+.compare__total td{border-bottom:0;font-weight:600;color:var(--navy);font-size:1rem}
+.compare__total b{color:var(--blue);font-size:1.12rem}
+
+/* ---------- pago ---------- */
+.pay{padding:1.8rem}
+.pay__row{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1.2rem;
+  padding:.9rem 0;border-bottom:1px solid var(--line)}
+.pay__label{flex:0 0 9rem;font-size:.72rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-soft)}
+.pay__value{font-size:1.05rem;font-weight:600;color:var(--navy);overflow-wrap:anywhere}
+.pay__value--mail{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap}
+.pay__value a{color:var(--blue);border-bottom:1px solid rgba(6,48,184,.28)}
+.pay__copy{padding:.34rem .8rem;border-radius:99px;cursor:pointer;font-size:.74rem;font-weight:600;
+  color:var(--blue);background:var(--blue-100);border:1px solid rgba(51,101,250,.24);
+  transition:background .3s,color .3s}
+.pay__copy:hover{background:var(--blue);color:#fff}
+.pay__copy.is-done{background:#16a34a;border-color:#16a34a;color:#fff}
+.pay__note{margin:1.2rem 0 0;font-size:.86rem;color:var(--ink-soft);line-height:1.65}
+
+/* ---------- cierre ---------- */
+.doc__cta{padding:clamp(2rem,5vw,3rem);text-align:center;display:grid;justify-items:center;gap:.7rem;
+  background:linear-gradient(150deg,#04123f 0%,#0630b8 62%,#3365fa 130%);
+  border-color:rgba(255,255,255,.2);
+  box-shadow:0 40px 74px -32px rgba(6,48,184,.75)}
+.doc__cta h2{margin:0;font-size:clamp(1.5rem,3.4vw,2.1rem);font-weight:700;letter-spacing:-.03em;color:#fff}
+.doc__cta p{margin:0;color:rgba(238,243,255,.82);max-width:38rem}
+.doc__cta p b{color:#fff}
+.doc__cta-btns{display:flex;flex-wrap:wrap;justify-content:center;gap:.8rem;margin-top:.9rem}
+.doc__cta .btn--ghost{color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);box-shadow:none}
+.doc__cta .btn--ghost:hover{background:rgba(255,255,255,.24)}
+
+/* ---------- pie ---------- */
+.doc__foot{padding:2rem 0 2.6rem;border-top:1px solid var(--line);background:#fff}
+.doc__foot-inner{display:flex;flex-wrap:wrap;justify-content:space-between;gap:.6rem;
+  font-size:.82rem;color:var(--ink-soft)}
+.doc__foot p{margin:0}
+.doc__foot b{color:var(--blue)}
+
+/* ---------- responsive ---------- */
+@media (max-width:640px){
+  .doc__top{position:static}
+  .doc__meta,.doc__card,.doc__hosting,.plan,.pay{padding:1.3rem}
+  .pay__label{flex:1 1 100%}
+  .doc__cta-btns .btn{width:100%}
+}
+
+/* ---------- impresión / PDF ---------- */
+@media print{
+  @page{margin:14mm}
+  .doc__top,.doc__cta-btns,.pay__copy,.doc__back{display:none !important}
+  .doc,.doc__foot{background:#fff !important}
+  body{color:#0c1638}
+  .glass{background:#fff !important;border:1px solid #dbe3f7 !important;
+    box-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+  .doc__section,.doc__hero{break-inside:avoid;page-break-inside:avoid}
+  .plan,.doc__card,.compare,.pay{break-inside:avoid;page-break-inside:avoid}
+  .doc__cta{background:#0630b8 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .grad,.plan--best .plan__price b{-webkit-text-fill-color:#0630b8;color:#0630b8}
+}

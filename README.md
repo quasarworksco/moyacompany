@@ -23,7 +23,9 @@ de la marca funcione como acento y no sature la página.
 ```
 index.html               Página completa (hero, servicios, tarifas, beneficios, nosotros,
                          cierre, contacto, footer) + meta Open Graph / Twitter y JSON-LD
+propuesta.html           Propuesta comercial para la clienta (no enlazada, noindex)
 assets/css/styles.css    Estilos: glassmorfismo, animaciones, responsive
+assets/css/propuesta.css Estilos propios de la propuesta
 assets/js/i18n.js        Diccionario ES / EN — aquí se editan TODOS los textos
 assets/js/main.js        Splash, menú, cambio de idioma, reveals, formulario
 assets/img/logo.png      Logo completo (marca + nombre) — splash screen
@@ -69,6 +71,20 @@ ventanas, estantes y tarjetas de UI flotantes. Va difuminada bajo un velo blanco
 
 Para cambiarla por una fotografía real, reemplaza ese archivo — idealmente **horizontal,
 1920×1100 px o más**. Si la foto es muy cargada u oscura, sube las opacidades del velo.
+
+## Página de propuesta
+
+`propuesta.html` es un documento comercial aparte, en
+`https://moyacompany.dgp-link.com/propuesta.html`. **No está enlazada desde el sitio**
+y lleva `noindex, nofollow`, así que solo la ve quien tenga el enlace.
+
+Contiene el alcance del proyecto, las dos opciones de inversión (mensual y anual),
+la comparación a 12 meses y los datos de pago por Zelle. Tiene estilos de impresión,
+de modo que el botón «Descargar en PDF» genera un PDF limpio desde el navegador.
+
+Las cifras están escritas directamente en el HTML. Si cambian, hay que actualizar:
+los importes de las dos tarjetas de plan, la tabla de comparación, la cifra de la
+portada y el texto de ahorro.
 
 ## Compartir en redes
 
