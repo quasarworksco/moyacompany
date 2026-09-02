@@ -546,9 +546,26 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   .brand__text{font-size:.96rem}
 }
 
+/* Nosotros: en pantallas medianas y móvil, retrato y ficha en una fila compacta
+   y el texto a todo el ancho, para no dejar una columna vacía */
+@media (max-width:840px){
+  .about{grid-template-columns:1fr !important;gap:1.7rem;align-items:start}
+  .about__media{width:100% !important;max-width:none !important;
+    display:flex;align-items:center;gap:1.2rem}
+  .about__media img{width:min(44%,230px);border-radius:20px}
+  .about__caption{margin-top:0;flex:1;min-width:0}
+}
+
+/* Nosotros: dos columnas más ajustadas, sin huecos junto a la foto */
+@media (max-width:1040px){
+  .about{grid-template-columns:minmax(0,.82fr) minmax(0,1.3fr);gap:2rem;align-items:center}
+  .about__media{width:100%;max-width:330px}
+  .about__caption{margin-top:1.1rem}
+  .about__title{font-size:clamp(1.5rem,3.4vw,2rem);margin-bottom:.9rem}
+  .about__copy p{font-size:.95rem}
+}
+
 @media (max-width:1024px){
-  .about{grid-template-columns:1fr;gap:2.2rem}
-  .about__media{width:min(100%,340px)}
   .pricing{grid-template-columns:1fr;gap:2.2rem;justify-items:center;text-align:center}
   .pricing__sub{margin-inline:auto}
   .pricing__cta{justify-content:center}
@@ -585,8 +602,7 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   .fab__label{display:none}
   .quote__plate{width:78px;height:78px;border-radius:22px}
   .quote__plate img{width:52px}
-  .about__media{width:100%}
-  .about__caption{margin-top:1.1rem}
+
   .footer__by{display:block;margin:.35rem 0 0;padding:0;border-left:0}
   .card{padding:1.6rem 1.4rem 1.3rem}
   .pricing__list{padding:1.3rem}
