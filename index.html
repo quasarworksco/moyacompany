@@ -1,1 +1,475 @@
+<!DOCTYPE html>
+<html lang="es" data-lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Moya &amp; Company — Your Digital Right Hand!</title>
+<meta name="description" data-i18n-attr="content" data-i18n="meta.description"
+      content="Moya &amp; Company — Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa. Desde $6 la hora." />
+<meta name="theme-color" content="#ffffff" />
+<meta property="og:title" content="Moya &amp; Company — Your Digital Right Hand!" />
+<meta property="og:description" content="Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa." />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="assets/img/logo.svg" />
 
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/img/logo.svg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+
+<!-- ============ SPLASH SCREEN ============ -->
+<div class="splash" id="splash" role="status" aria-live="polite" aria-label="Loading">
+  <div class="splash__aurora" aria-hidden="true"></div>
+  <div class="splash__inner">
+    <div class="splash__ring" aria-hidden="true">
+      <span class="splash__ring-spin"></span>
+      <span class="splash__ring-glow"></span>
+      <!-- LOGO: reemplazar assets/img/logo.svg por el logo definitivo -->
+      <img src="assets/img/logo.svg" alt="Moya &amp; Company" class="splash__logo" />
+    </div>
+    <p class="splash__name">Moya <span>&amp;</span> Company</p>
+    <p class="splash__tag">Your Digital Right Hand!</p>
+    <div class="splash__bar" aria-hidden="true"><i></i></div>
+  </div>
+</div>
+
+<div class="spotlight" id="spotlight" aria-hidden="true"></div>
+
+<!-- ============ HEADER ============ -->
+<header class="header" id="header">
+  <div class="container header__inner">
+    <a class="brand" href="#top" aria-label="Moya &amp; Company">
+      <img src="assets/img/logo.svg" alt="" class="brand__logo" />
+      <span class="brand__text">Moya <span class="brand__amp">&amp;</span> Company</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Main">
+      <a href="#services" data-i18n="nav.services">Servicios</a>
+      <a href="#pricing" data-i18n="nav.pricing">Tarifas</a>
+      <a href="#benefits" data-i18n="nav.benefits">Beneficios</a>
+      <a href="#contact" data-i18n="nav.contact">Contacto</a>
+    </nav>
+
+    <div class="header__actions">
+      <div class="lang" role="group" aria-label="Language / Idioma">
+        <span class="lang__pill" id="langPill" aria-hidden="true"></span>
+        <button type="button" class="lang__btn is-active" data-lang-set="es" aria-pressed="true">ES</button>
+        <button type="button" class="lang__btn" data-lang-set="en" aria-pressed="false">EN</button>
+      </div>
+      <a class="btn btn--primary btn--sm header__cta" href="#contact" data-i18n="nav.cta">Hablemos</a>
+      <button class="burger" id="burger" type="button" aria-label="Menu" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ============ HERO (claro) ============ -->
+  <section class="hero">
+    <div class="hero__decor" aria-hidden="true">
+      <span class="orb orb--1"></span>
+      <span class="orb orb--2"></span>
+      <span class="orb orb--3"></span>
+      <span class="hero__grid"></span>
+    </div>
+
+    <div class="container hero__inner">
+      <div class="hero__copy">
+        <span class="chip reveal" data-i18n="hero.chip">✦ Soporte digital para negocios que crecen</span>
+
+        <h1 class="hero__title reveal" data-delay="1">
+          <span class="hero__title-line" data-i18n="hero.title1">Your Digital</span>
+          <span class="hero__title-line grad" data-i18n="hero.title2">Right Hand!</span>
+        </h1>
+
+        <p class="hero__sub reveal" data-delay="2" data-i18n="hero.sub">
+          Soluciones digitales para optimizar tu negocio, ahorrar tiempo y enfocarte en lo que realmente importa.
+        </p>
+
+        <a class="price-badge reveal" data-delay="2" href="#pricing">
+          <span class="price-badge__star" aria-hidden="true">✦</span>
+          <span data-i18n="price.badge">Desde $6 la hora</span>
+          <em aria-hidden="true">→</em>
+        </a>
+
+        <div class="hero__cta reveal" data-delay="3">
+          <a class="btn btn--primary" href="#contact">
+            <span data-i18n="hero.cta1">Solicitar propuesta</span>
+            <svg viewBox="0 0 24 24" class="btn__ico" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+          </a>
+          <a class="btn btn--ghost" href="#services" data-i18n="hero.cta2">Ver servicios</a>
+        </div>
+
+        <ul class="hero__meta reveal" data-delay="4">
+          <li><strong data-i18n="hero.m1n">6</strong><span data-i18n="hero.m1l">Servicios clave</span></li>
+          <li><strong data-i18n="hero.m2n">100%</strong><span data-i18n="hero.m2l">Bilingüe ES / EN</span></li>
+          <li><strong data-i18n="hero.m3n">1:1</strong><span data-i18n="hero.m3l">Atención personalizada</span></li>
+        </ul>
+      </div>
+
+      <aside class="hero__card glass reveal" data-delay="2" aria-label="Moya &amp; Company">
+        <div class="hero__card-top">
+          <img src="assets/img/logo.svg" alt="" class="hero__card-logo" />
+          <div>
+            <p class="hero__card-name">Moya &amp; Company</p>
+            <p class="hero__card-role" data-i18n="hero.card.role">Tu mano derecha digital</p>
+          </div>
+          <span class="dot-live" title="online" aria-hidden="true"></span>
+        </div>
+
+        <p class="hero__card-quote" data-i18n="hero.card.quote">
+          “Tienes la visión. Nosotros somos tu respaldo.”
+        </p>
+
+        <ul class="hero__card-list">
+          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l1">Call Center y Customer Service</span></li>
+          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l2">Redes sociales y asistencia virtual</span></li>
+          <li><i class="tick" aria-hidden="true"></i><span data-i18n="hero.card.l3">Estructura de CRM y SOPs</span></li>
+        </ul>
+
+        <div class="hero__card-price">
+          <span data-i18n="price.from">Desde</span>
+          <strong>$6</strong>
+          <span data-i18n="price.hour">/ hora</span>
+        </div>
+
+        <div class="hero__card-actions">
+          <a class="mini-btn" href="https://wa.me/17133827990" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4a10 10 0 0 0-15.6 12L3 21l5.2-1.4A10 10 0 1 0 20 4Z"/><path d="M8.6 8.9c.2-.5.4-.5.7-.5h.5c.2 0 .4 0 .6.5l.8 1.8c.1.3 0 .5-.1.6l-.4.5c-.1.2-.2.3 0 .6a7 7 0 0 0 3 2.6c.3.1.5.1.6 0l.6-.6c.2-.2.4-.2.6-.1l1.7.9c.3.1.4.3.4.5s-.2 1-.6 1.3c-.4.3-1 .5-1.6.4a10 10 0 0 1-6.8-5.6c-.4-1-.4-1.9-.1-2.4Z"/></svg>
+            WhatsApp
+          </a>
+          <a class="mini-btn" href="tel:+17133827990">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c0-.6.4-1 1-1h2.3c.5 0 .9.3 1 .8l.7 3c.1.4 0 .8-.4 1L7.2 10a12 12 0 0 0 6.8 6.8l1.2-1.4c.3-.3.7-.4 1.1-.3l3 .7c.4.1.7.5.7 1V19c0 .6-.4 1-1 1A16 16 0 0 1 4 5Z"/></svg>
+            (713) 382-7990
+          </a>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ============ MARQUEE ============ -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track" id="marqueeTrack">
+      <span>Call Center</span><i>✦</i><span>Social Media Management</span><i>✦</i>
+      <span>Virtual Assistance</span><i>✦</i><span>Customer Service</span><i>✦</i>
+      <span>CRM System Structure</span><i>✦</i><span>SOP</span><i>✦</i>
+    </div>
+  </div>
+
+  <!-- ============ SERVICIOS (blanco) ============ -->
+  <section class="section section--soft" id="services">
+    <div class="container">
+      <header class="section__head reveal">
+        <span class="eyebrow" data-i18n="services.eyebrow">Servicios</span>
+        <h2 class="section__title" data-i18n="services.title">Todo lo que tu operación necesita, en un solo lugar</h2>
+        <p class="section__sub" data-i18n="services.sub">Un catálogo diseñado para quitarte tareas de encima y darle estructura a tu negocio.</p>
+      </header>
+
+      <div class="cards">
+        <article class="card glass tilt reveal" data-delay="1">
+          <span class="card__num">01</span>
+          <div class="card__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 0 1 16 0"/><rect x="3" y="12" width="4" height="7" rx="1.6"/><rect x="17" y="12" width="4" height="7" rx="1.6"/><path d="M20 19a3 3 0 0 1-3 3h-2"/></svg>
+          </div>
+          <h3 class="card__title" data-i18n="svc.1.t">Call Center</h3>
+          <p class="card__text" data-i18n="svc.1.d">Gestión de llamadas, atención al cliente y asistencia profesional para tu negocio.</p>
+          <a class="card__link" href="#contact"><span data-i18n="card.more">Solicitar</span> <em>→</em></a>
+        </article>
+
+        <article class="card glass tilt reveal" data-delay="2">
+          <span class="card__num">02</span>
+          <div class="card__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v7a2.5 2.5 0 0 1-2.5 2.5H9l-5 4V6.5Z"/><path d="M8.5 10h7M8.5 12.8h4"/></svg>
+          </div>
+          <h3 class="card__title" data-i18n="svc.2.t">Social Media Management</h3>
+          <p class="card__text" data-i18n="svc.2.d">Gestionamos tus redes sociales para aumentar tu presencia en línea, conectar con tu audiencia y hacer crecer tu marca.</p>
+          <a class="card__link" href="#contact"><span data-i18n="card.more">Solicitar</span> <em>→</em></a>
+        </article>
+
+        <article class="card glass tilt reveal" data-delay="3">
+          <span class="card__num">03</span>
+          <div class="card__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/><path d="M18.5 4.5 20 6l2.2-2.2"/></svg>
+          </div>
+          <h3 class="card__title" data-i18n="svc.3.t">Virtual Assistance</h3>
+          <p class="card__text" data-i18n="svc.3.d">Soporte administrativo confiable para gestionar tareas, organizar tu día y potenciar tu productividad.</p>
+          <a class="card__link" href="#contact"><span data-i18n="card.more">Solicitar</span> <em>→</em></a>
+        </article>
+
+        <article class="card glass tilt reveal" data-delay="1">
+          <span class="card__num">04</span>
+          <div class="card__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s7.5-4.3 7.5-9.8A7.5 7.5 0 0 0 12 3.7a7.5 7.5 0 0 0-7.5 7.5C4.5 16.7 12 21 12 21Z"/><path d="M9.2 11.2a2.8 2.8 0 0 0 5.6 0"/></svg>
+          </div>
+          <h3 class="card__title" data-i18n="svc.4.t">Customer Service</h3>
+          <p class="card__text" data-i18n="svc.4.d">Entregamos experiencias excepcionales al cliente a través de canales eficientes y profesionales.</p>
+          <a class="card__link" href="#contact"><span data-i18n="card.more">Solicitar</span> <em>→</em></a>
+        </article>
+
+        <article class="card glass tilt reveal" data-delay="2">
+          <span class="card__num">05</span>
+          <div class="card__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><path d="M3.5 9h17M8 4.5v15"/><path d="M12.5 12.5h4.5M12.5 15.5h3"/></svg>
+          </div>
+          <h3 class="card__title" data-i18n="svc.5.t">CRM System Structure</h3>
+          <p class="card__text" data-i18n="svc.5.d">Diseñamos y organizamos tu sistema CRM para centralizar datos, automatizar procesos y mejorar la gestión de clientes.</p>
+          <a class="card__link" href="#contact"><span data-i18n="card.more">Solicitar</span> <em>→</em></a>
+        </article>
+
+        <article class="card glass tilt reveal" data-delay="3">
+          <span class="card__num">06</span>
+          <div class="card__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h7L18.5 8v12.5h-12V3.5Z"/><path d="M13.5 3.5V8h5"/><path d="M9 12.5h6M9 16h4"/></svg>
+          </div>
+          <h3 class="card__title" data-i18n="svc.6.t">SOP</h3>
+          <p class="card__text" data-i18n="svc.6.d">Creamos Procedimientos Operativos Estándar (SOPs) para estandarizar las operaciones y garantizar consistencia y calidad.</p>
+          <a class="card__link" href="#contact"><span data-i18n="card.more">Solicitar</span> <em>→</em></a>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TARIFAS (azul) ============ -->
+  <section class="section section--dark on-dark" id="pricing">
+    <div class="section__decor" aria-hidden="true">
+      <span class="orb orb--d1"></span>
+      <span class="orb orb--d2"></span>
+    </div>
+    <div class="container pricing">
+      <div class="pricing__copy reveal">
+        <span class="eyebrow" data-i18n="price.eyebrow">Tarifas</span>
+        <h2 class="pricing__title">
+          <span data-i18n="price.title.a">Desde</span>
+          <span class="pricing__amount">$6</span>
+          <span data-i18n="price.title.b">la hora</span>
+        </h2>
+        <p class="pricing__sub" data-i18n="price.sub">Trabajamos con planes flexibles según las horas que necesites. Cuéntanos cómo funciona tu operación y armamos una propuesta a tu medida.</p>
+        <div class="pricing__cta">
+          <a class="btn btn--white" href="#contact">
+            <span data-i18n="price.cta">Solicitar propuesta</span>
+            <svg viewBox="0 0 24 24" class="btn__ico" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a class="btn btn--ghost" href="https://wa.me/17133827990" target="_blank" rel="noopener" data-i18n="price.cta2">Escribir por WhatsApp</a>
+        </div>
+        <p class="pricing__note" data-i18n="price.note">* Tarifa inicial. El precio final depende del servicio y del volumen de horas.</p>
+      </div>
+
+      <ul class="pricing__list reveal" data-delay="2">
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f1">Sin contratos rígidos: pagas por las horas que usas.</span></li>
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f2">Equipo bilingüe español / inglés.</span></li>
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f3">Puedes combinar varios servicios en un mismo plan.</span></li>
+        <li><i class="tick" aria-hidden="true"></i><span data-i18n="price.f4">Reportes y comunicación directa contigo.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- ============ BENEFICIOS (gris claro) ============ -->
+  <section class="section section--white" id="benefits">
+    <div class="container">
+      <header class="section__head reveal">
+        <span class="eyebrow" data-i18n="ben.eyebrow">El impacto</span>
+        <h2 class="section__title" data-i18n="ben.title">Lo que ganas al delegar</h2>
+      </header>
+
+      <div class="benefits">
+        <article class="benefit glass reveal" data-delay="1">
+          <div class="benefit__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/><circle cx="12" cy="12" r=".6" fill="currentColor"/></svg>
+          </div>
+          <h3 data-i18n="ben.1.t">More Focus</h3>
+          <p data-i18n="ben.1.d">Más enfoque en lo que impulsa tu negocio.</p>
+        </article>
+
+        <article class="benefit glass reveal" data-delay="2">
+          <div class="benefit__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9.5V13l2.4 1.6"/><path d="M9 2.8h6"/></svg>
+          </div>
+          <h3 data-i18n="ben.2.t">More Time</h3>
+          <p data-i18n="ben.2.d">Más tiempo para crecer en lo que verdaderamente importa.</p>
+        </article>
+
+        <article class="benefit glass reveal" data-delay="3">
+          <div class="benefit__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5V13m5 6.5V8.5m5 11V4.5m5 15V10"/></svg>
+          </div>
+          <h3 data-i18n="ben.3.t">Better Results</h3>
+          <p data-i18n="ben.3.d">Mejores resultados a través de procesos eficientes y organización.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CIERRE (panel azul) ============ -->
+  <section class="section section--soft" id="about">
+    <div class="container">
+      <div class="quote on-dark reveal">
+        <div class="quote__decor" aria-hidden="true">
+          <span class="orb orb--d1"></span>
+          <span class="orb orb--d2"></span>
+        </div>
+        <img src="assets/img/logo.svg" alt="" class="quote__logo" />
+        <p class="quote__text">
+          <span data-i18n="quote.a">Tienes la visión.</span>
+          <span class="quote__accent" data-i18n="quote.b">Nosotros somos tu respaldo.</span>
+        </p>
+        <p class="quote__sub" data-i18n="quote.sub">Moya &amp; Company — Your Digital Right Hand!</p>
+        <a class="btn btn--white" href="#contact" data-i18n="quote.cta">Empecemos hoy</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ CONTACTO (blanco) ============ -->
+  <section class="section section--white" id="contact">
+    <div class="container">
+      <header class="section__head reveal">
+        <span class="eyebrow" data-i18n="contact.eyebrow">Contacto</span>
+        <h2 class="section__title" data-i18n="contact.title">Hablemos de tu negocio</h2>
+        <p class="section__sub" data-i18n="contact.sub">Cuéntanos qué necesitas y te respondemos con una propuesta a tu medida.</p>
+      </header>
+
+      <div class="contact">
+        <div class="contact__side">
+          <a class="ccard glass reveal" data-delay="1" href="mailto:veronica@moyacompanytx.com">
+            <span class="ccard__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3.8 7 8.2 6 8.2-6"/></svg></span>
+            <span class="ccard__body">
+              <b data-i18n="contact.email">Email</b>
+              <span>veronica@moyacompanytx.com</span>
+            </span>
+          </a>
+
+          <a class="ccard glass reveal" data-delay="2" href="tel:+17133827990">
+            <span class="ccard__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c0-.6.4-1 1-1h2.3c.5 0 .9.3 1 .8l.7 3c.1.4 0 .8-.4 1L7.2 10a12 12 0 0 0 6.8 6.8l1.2-1.4c.3-.3.7-.4 1.1-.3l3 .7c.4.1.7.5.7 1V19c0 .6-.4 1-1 1A16 16 0 0 1 4 5Z"/></svg></span>
+            <span class="ccard__body">
+              <b data-i18n="contact.phone">Teléfono / WhatsApp</b>
+              <span>+1 (713) 382-7990</span>
+            </span>
+          </a>
+
+          <a class="ccard glass reveal" data-delay="3" href="https://instagram.com/moyacompanytx" target="_blank" rel="noopener">
+            <span class="ccard__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="1.1" fill="currentColor"/></svg></span>
+            <span class="ccard__body">
+              <b>Instagram</b>
+              <span>@moyacompanytx</span>
+            </span>
+          </a>
+
+          <!-- NOTA: verificar la URL exacta de la página de Facebook antes de publicar. -->
+          <a class="ccard glass reveal" data-delay="4" href="https://www.facebook.com/moyaandcompany" target="_blank" rel="noopener">
+            <span class="ccard__ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 21v-7h2.4l.4-3h-2.8V9.2c0-.9.3-1.5 1.6-1.5h1.3V5c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8V11H9v3h2.5v7h3Z"/></svg></span>
+            <span class="ccard__body">
+              <b>Facebook</b>
+              <span>Moya and Company</span>
+            </span>
+          </a>
+
+          <div class="hours glass reveal" data-delay="4">
+            <span class="dot-live" aria-hidden="true"></span>
+            <p data-i18n="contact.note">Atendemos en español e inglés. Respuesta típica en menos de 24 horas.</p>
+          </div>
+        </div>
+
+        <form class="form glass reveal" data-delay="2" id="contactForm" novalidate>
+          <div class="form__row">
+            <label class="field">
+              <span data-i18n="form.name">Nombre</span>
+              <input type="text" name="name" required autocomplete="name"
+                     data-i18n-attr="placeholder" data-i18n="form.name.ph" placeholder="Tu nombre" />
+            </label>
+            <label class="field">
+              <span data-i18n="form.company">Empresa</span>
+              <input type="text" name="company" autocomplete="organization"
+                     data-i18n-attr="placeholder" data-i18n="form.company.ph" placeholder="Nombre de tu negocio" />
+            </label>
+          </div>
+
+          <div class="form__row">
+            <label class="field">
+              <span data-i18n="form.email">Email</span>
+              <input type="email" name="email" required autocomplete="email" placeholder="you@email.com" />
+            </label>
+            <label class="field">
+              <span data-i18n="form.service">Servicio</span>
+              <select name="service" id="serviceSelect">
+                <option value="Call Center">Call Center</option>
+                <option value="Social Media Management">Social Media Management</option>
+                <option value="Virtual Assistance">Virtual Assistance</option>
+                <option value="Customer Service">Customer Service</option>
+                <option value="CRM System Structure">CRM System Structure</option>
+                <option value="SOP">SOP</option>
+                <option value="Other" data-i18n="form.other">Otro</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="field">
+            <span data-i18n="form.msg">Mensaje</span>
+            <textarea name="message" rows="4" required
+                      data-i18n-attr="placeholder" data-i18n="form.msg.ph"
+                      placeholder="Cuéntanos brevemente qué necesitas…"></textarea>
+          </label>
+
+          <button class="btn btn--primary btn--block" type="submit">
+            <span data-i18n="form.send">Enviar mensaje</span>
+            <svg viewBox="0 0 24 24" class="btn__ico" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </button>
+          <p class="form__hint" data-i18n="form.hint">Se abrirá tu cliente de correo con el mensaje listo para enviar.</p>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<!-- ============ FOOTER (azul profundo) ============ -->
+<footer class="footer on-dark">
+  <div class="container footer__inner">
+    <div class="footer__brand">
+      <img src="assets/img/logo.svg" alt="" class="brand__logo" />
+      <div>
+        <p class="footer__name">Moya &amp; Company</p>
+        <p class="footer__tag">Your Digital Right Hand!</p>
+      </div>
+    </div>
+
+    <nav class="footer__nav" aria-label="Footer">
+      <a href="#services" data-i18n="nav.services">Servicios</a>
+      <a href="#pricing" data-i18n="nav.pricing">Tarifas</a>
+      <a href="#benefits" data-i18n="nav.benefits">Beneficios</a>
+      <a href="#contact" data-i18n="nav.contact">Contacto</a>
+    </nav>
+
+    <div class="footer__social">
+      <a href="https://instagram.com/moyacompanytx" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="1.1" fill="currentColor"/></svg>
+      </a>
+      <a href="https://www.facebook.com/moyaandcompany" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 21v-7h2.4l.4-3h-2.8V9.2c0-.9.3-1.5 1.6-1.5h1.3V5c-.3 0-1.2-.1-2.2-.1-2.2 0-3.7 1.3-3.7 3.8V11H9v3h2.5v7h3Z"/></svg>
+      </a>
+      <a href="mailto:veronica@moyacompanytx.com" aria-label="Email">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m3.8 7 8.2 6 8.2-6"/></svg>
+      </a>
+      <a href="tel:+17133827990" aria-label="Phone">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5c0-.6.4-1 1-1h2.3c.5 0 .9.3 1 .8l.7 3c.1.4 0 .8-.4 1L7.2 10a12 12 0 0 0 6.8 6.8l1.2-1.4c.3-.3.7-.4 1.1-.3l3 .7c.4.1.7.5.7 1V19c0 .6-.4 1-1 1A16 16 0 0 1 4 5Z"/></svg>
+      </a>
+    </div>
+  </div>
+  <div class="container footer__bottom">
+    <p>© <span id="year">2026</span> Moya &amp; Company. <span data-i18n="footer.rights">Todos los derechos reservados.</span></p>
+    <p class="footer__loc">Houston, TX · <span data-i18n="footer.remote">Servicio remoto</span></p>
+  </div>
+</footer>
+
+<a class="fab" href="https://wa.me/17133827990" target="_blank" rel="noopener" aria-label="WhatsApp">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4a10 10 0 0 0-15.6 12L3 21l5.2-1.4A10 10 0 1 0 20 4Z"/><path d="M8.6 8.9c.2-.5.4-.5.7-.5h.5c.2 0 .4 0 .6.5l.8 1.8c.1.3 0 .5-.1.6l-.4.5c-.1.2-.2.3 0 .6a7 7 0 0 0 3 2.6c.3.1.5.1.6 0l.6-.6c.2-.2.4-.2.6-.1l1.7.9c.3.1.4.3.4.5s-.2 1-.6 1.3c-.4.3-1 .5-1.6.4a10 10 0 0 1-6.8-5.6c-.4-1-.4-1.9-.1-2.4Z"/></svg>
+</a>
+
+<script src="assets/js/i18n.js"></script>
+<script src="assets/js/main.js"></script>
+</body>
+</html>
