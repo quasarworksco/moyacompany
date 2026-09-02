@@ -25,8 +25,10 @@ index.html               Página completa (hero, servicios, tarifas, beneficios,
 assets/css/styles.css    Estilos: glassmorfismo, animaciones, responsive
 assets/js/i18n.js        Diccionario ES / EN — aquí se editan TODOS los textos
 assets/js/main.js        Splash, menú, cambio de idioma, reveals, formulario
-assets/img/logo.svg      Logo (placeholder — reemplazar por el logo real)
-assets/img/favicon.svg   Ícono de pestaña
+assets/img/logo.png      Logo completo (marca + nombre) — splash screen
+assets/img/logo-mark.png Solo la marca — header, cierre y footer
+assets/img/favicon.png   Ícono de pestaña
+assets/img/hero.jpg      Fondo del hero (placeholder abstracto, ver abajo)
 ```
 
 ## Cómo verlo
@@ -38,18 +40,29 @@ npx http-server -p 8080 .
 # http://localhost:8080
 ```
 
-## Reemplazar el logo
+## Logo
 
-El logo actual es un **placeholder**. Para poner el definitivo:
+El logo oficial ya está aplicado. Se generaron tres archivos a partir del original,
+con el fondo blanco convertido en transparencia y los colores ajustados a los tres
+tonos de la marca (`#00227c`, `#0930b9`, `#3466f9`):
 
-1. Guarda el archivo como `assets/img/logo.svg` (recomendado: SVG o PNG con fondo transparente,
-   mínimo 512×512 px).
-2. Si es PNG, nómbralo `assets/img/logo.png` y reemplaza `assets/img/logo.svg` por
-   `assets/img/logo.png` en `index.html` (aparece 5 veces: splash, header, tarjeta del hero,
-   sección de cierre y footer).
-3. Opcional: actualiza también `assets/img/favicon.svg`.
+| Archivo | Dónde se usa |
+| --- | --- |
+| `assets/img/logo.png` | Splash screen (lockup completo con el nombre) |
+| `assets/img/logo-mark.png` | Header, sección de cierre y footer |
+| `assets/img/favicon.png` | Pestaña del navegador |
 
-No hace falta tocar nada más: el mismo archivo se usa en toda la página.
+Sobre los fondos azules (cierre y footer) la marca va dentro de una placa blanca
+redondeada, porque el azul oscuro del logo se perdería contra el fondo.
+
+Para actualizar el logo, reemplaza esos archivos manteniendo los mismos nombres.
+
+## Foto del hero
+
+`assets/img/hero.jpg` es un fondo abstracto generado como base. Para poner una foto real
+(oficina, equipo, servicio empresarial), reemplaza ese archivo — idealmente **1920×1100 px
+o más, horizontal**. Encima va un velo blanco (`.hero__veil` en `styles.css`) que mantiene
+el texto legible; si la foto es muy cargada u oscura, sube las opacidades de ese velo.
 
 ## Cambiar textos
 
