@@ -115,7 +115,7 @@ window.MOYA_I18N = {
     "form.body.message": "Mensaje",
 
     "footer.rights": "Todos los derechos reservados.",
-    "footer.by": "Desarrollado por",
+    "footer.by": "Diseñado por",
     "footer.remote": "Servicio remoto"
   },
 
@@ -231,7 +231,7 @@ window.MOYA_I18N = {
     "form.body.message": "Message",
 
     "footer.rights": "All rights reserved.",
-    "footer.by": "Developed by",
+    "footer.by": "Designed by",
     "footer.remote": "Remote service"
   }
 };
