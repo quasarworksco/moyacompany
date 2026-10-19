@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Panel — Moya &amp; Company</title>
+<meta name="robots" content="noindex, nofollow" />
+<meta name="theme-color" content="#04123f" />
+<link rel="icon" href="../assets/img/favicon.png" type="image/png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/admin.css" />
+</head>
+<body>
+
+<!-- ============ ACCESO ============ -->
+<div class="gate" id="gate">
+  <form class="gate__card" id="loginForm" novalidate>
+    <img src="../assets/img/logo.png" alt="Moya &amp; Company" class="gate__logo" />
+    <h1 class="gate__title">Panel de administración</h1>
+    <p class="gate__sub">Acceso restringido</p>
+
+    <label class="afield">
+      <span>Usuario</span>
+      <input type="text" id="user" autocomplete="username" autocapitalize="none" spellcheck="false" required />
+    </label>
+    <label class="afield">
+      <span>Contraseña</span>
+      <input type="password" id="pass" autocomplete="current-password" required />
+    </label>
+
+    <p class="gate__error" id="loginError" role="alert" hidden>Usuario o contraseña incorrectos.</p>
+
+    <button class="abtn abtn--primary abtn--block" type="submit">Entrar</button>
+    <a class="gate__back" href="../index.html">← Volver al sitio</a>
+  </form>
+</div>
+
+<!-- ============ PANEL ============ -->
+<div class="app" id="app" hidden>
+  <header class="topbar">
+    <div class="wrap topbar__inner">
+      <div class="topbar__brand">
+        <img src="../assets/img/logo-mark.png" alt="" />
+        <div>
+          <p class="topbar__name">Moya &amp; Company</p>
+          <p class="topbar__sub">Panel de administración</p>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <span class="stamp" id="stamp">—</span>
+        <button class="abtn abtn--ghost" type="button" id="refresh">Actualizar</button>
+        <button class="abtn abtn--ghost" type="button" id="logout">Salir</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap main">
+    <div class="notice" id="notice" hidden></div>
+
+    <section class="kpis" id="kpis" aria-label="Resumen">
+      <article class="kpi"><p class="kpi__label">Visitas hoy</p><p class="kpi__value" data-k="hoy">—</p><p class="kpi__delta" data-k="hoy-d"></p></article>
+      <article class="kpi"><p class="kpi__label">Últimos 7 días</p><p class="kpi__value" data-k="dias7">—</p><p class="kpi__delta" data-k="dias7-d"></p></article>
+      <article class="kpi"><p class="kpi__label">Últimos 30 días</p><p class="kpi__value" data-k="dias30">—</p><p class="kpi__delta"></p></article>
+      <article class="kpi"><p class="kpi__label">Visitantes únicos · 30 días</p><p class="kpi__value" data-k="sesiones30">—</p><p class="kpi__delta"></p></article>
+    </section>
+
+    <section class="panel">
+      <header class="panel__head">
+        <div>
+          <h2 class="panel__title">Visitas por día</h2>
+          <p class="panel__sub">Últimos 30 días</p>
+        </div>
+        <button class="abtn abtn--ghost abtn--sm" type="button" id="toggleTable" aria-expanded="false">Ver tabla</button>
+      </header>
+      <div class="chart" id="chart"></div>
+      <div class="tablewrap" id="tablewrap" hidden></div>
+    </section>
+
+    <section class="grid2">
+      <div class="panel">
+        <header class="panel__head"><h2 class="panel__title">Páginas más vistas</h2></header>
+        <ul class="ranks" id="paginas"></ul>
+      </div>
+      <div class="panel">
+        <header class="panel__head"><h2 class="panel__title">De dónde llegan</h2></header>
+        <ul class="ranks" id="origenes"></ul>
+      </div>
+      <div class="panel">
+        <header class="panel__head"><h2 class="panel__title">Dispositivo</h2></header>
+        <ul class="ranks" id="dispositivos"></ul>
+      </div>
+      <div class="panel">
+        <header class="panel__head"><h2 class="panel__title">Idioma</h2></header>
+        <ul class="ranks" id="idiomas"></ul>
+      </div>
+    </section>
+
+    <p class="foot">
+      Las visitas se registran sin cookies ni datos personales: sólo página, idioma,
+      tipo de dispositivo, origen y un identificador de sesión temporal.
+    </p>
+  </main>
+</div>
+
+<div class="tip" id="tip" hidden></div>
+
+<script src="../assets/js/supabase-config.js"></script>
+<script src="../assets/js/admin.js"></script>
+</body>
+</html>
