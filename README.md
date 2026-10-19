@@ -24,8 +24,14 @@ de la marca funcione como acento y no sature la página.
 index.html               Página completa (hero, servicios, tarifas, beneficios, nosotros,
                          cierre, contacto, footer) + meta Open Graph / Twitter y JSON-LD
 propuesta.html           Propuesta comercial para la clienta (no enlazada, noindex)
+admin/index.html         Panel de administración con métricas (no enlazado, noindex)
+assets/js/analytics.js   Registro de visitas (sin cookies)
+assets/js/admin.js       Acceso y panel de métricas
+assets/js/supabase-config.js  Credenciales de Supabase
+supabase/migrations/     SQL de la tabla de visitas y la función de agregados
 assets/css/styles.css    Estilos: glassmorfismo, animaciones, responsive
 assets/css/propuesta.css Estilos propios de la propuesta
+assets/css/admin.css     Estilos del panel
 assets/js/i18n.js        Diccionario ES / EN — aquí se editan TODOS los textos
 assets/js/main.js        Splash, menú, cambio de idioma, reveals, formulario
 assets/img/logo.png      Logo completo (marca + nombre) — splash screen
@@ -94,6 +100,46 @@ Si hay un logo real, se sustituye por un `<img>` en la barra superior, la firma 
 Las cifras están escritas directamente en el HTML. Si cambian, hay que actualizar:
 los importes de las dos tarjetas de plan, la tabla de comparación, la cifra de la
 portada y el texto de ahorro.
+
+## Panel de administración
+
+`admin/index.html` se sirve en `https://moyacompany.com/admin/`. No está enlazado
+desde el sitio y lleva `noindex, nofollow`.
+
+**Usuario:** `admin` · **Contraseña:** `Quasar123`
+
+> ⚠️ **Esto no es seguridad real.** El sitio es estático: la validación ocurre en el
+> navegador y el hash de la contraseña viaja en `assets/js/admin.js`. Cualquiera que
+> mire el código fuente puede saltarse el acceso. Sirve para que el panel no quede a
+> la vista, no para proteger información. **No guardes nada sensible detrás de él.**
+> Para un acceso de verdad hace falta un backend con sesión en servidor.
+
+Para cambiar la contraseña, genera el hash y reemplaza `PASS_SHA256` en
+`assets/js/admin.js`:
+
+```bash
+printf '%s' 'TuNuevaClave' | sha256sum
+```
+
+## Métricas
+
+Las visitas se guardan en Supabase. No se usan cookies ni se guarda la IP: sólo la
+página, el idioma, el tipo de dispositivo, el origen y un identificador de sesión
+que vive en `sessionStorage`.
+
+**Puesta en marcha:**
+
+1. Crear un proyecto en Supabase.
+2. Ejecutar `supabase/migrations/0001_moya_analytics.sql` (SQL Editor del proyecto).
+   Crea la tabla `moya_pageviews` con RLS — el sitio sólo puede **insertar**, nunca
+   leer — y la función `moya_stats()`, que devuelve los agregados que consume el panel.
+3. Copiar la URL del proyecto y la clave `anon` en `assets/js/supabase-config.js`.
+
+La clave `anon` es pública por diseño y está limitada por las políticas de RLS:
+permite registrar una visita y leer totales, nunca las filas individuales.
+
+Si `supabase-config.js` está vacío, el sitio público no intenta registrar nada y el
+panel muestra un aviso en lugar de las métricas.
 
 ## Compartir en redes
 

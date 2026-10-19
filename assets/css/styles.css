@@ -32,6 +32,19 @@
   --ease:cubic-bezier(.22,.85,.3,1);
 }
 
+/* Isla CLARA dentro de una sección oscura (p. ej. el formulario de postulación) */
+.on-light{
+  --ink:#0c1638;
+  --ink-dim:#4d5a84;
+  --ink-soft:#7d88ad;
+  --line:rgba(9,30,110,.10);
+  --glass-bg:linear-gradient(160deg,rgba(255,255,255,.99),rgba(255,255,255,.94));
+  --glass-brd:rgba(9,30,110,.08);
+  --glass-shadow:0 34px 68px -26px rgba(1,8,40,.65);
+  --glass-inset:inset 0 1px 0 rgba(255,255,255,1);
+  color:var(--ink);
+}
+
 /* Tokens OSCUROS — se aplican a cualquier bloque marcado .on-dark */
 .on-dark{
   --ink:#f2f6ff;
@@ -443,6 +456,16 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 .on-dark .field select option{background:#04123f;color:#fff}
 .on-dark .field.has-error input,.on-dark .field.has-error textarea{
   border-color:#ff8f9a;box-shadow:0 0 0 4px rgba(255,143,154,.2)}
+.on-light .field input,.on-light .field select,.on-light .field textarea{
+  background-color:rgba(255,255,255,.9);border-color:var(--line);color:var(--navy)}
+.on-light .field input::placeholder,.on-light .field textarea::placeholder{color:rgba(12,22,56,.35)}
+.on-light .field input:focus,.on-light .field select:focus,.on-light .field textarea:focus{
+  background-color:#fff;border-color:var(--blue-400);box-shadow:0 0 0 4px rgba(51,101,250,.14)}
+.on-light .field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233365fa' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+.on-light .field select option{background:#fff;color:var(--navy)}
+.on-light .field.has-error input,.on-light .field.has-error textarea{
+  border-color:#e5484d;box-shadow:0 0 0 4px rgba(229,72,77,.12)}
 
 /* ---------------------------------------------------------
    CIERRE
