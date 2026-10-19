@@ -141,7 +141,7 @@
   }
 
   /* ---------- 5. Nav activo según sección ------------------------------ */
-  var sections = ["services", "pricing", "benefits", "about", "contact"]
+  var sections = ["services", "pricing", "benefits", "about", "careers", "contact"]
     .map(function (id) { return document.getElementById(id); })
     .filter(Boolean);
 
@@ -196,40 +196,37 @@
     });
   }
 
-  /* ---------- 8. Formulario -> mailto ---------------------------------- */
-  var form = document.getElementById("contactForm");
-  if (form) {
+  /* ---------- 8. Formularios -> mailto --------------------------------- */
+  var MAIL_TO = "veronica@moyacompanytx.com";
+
+  function wireMailtoForm(formId, subjectKey, fields, messageKey) {
+    var form = document.getElementById(formId);
+    if (!form) return;
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var ok = true;
 
       form.querySelectorAll("[required]").forEach(function (input) {
         var valid = input.value.trim() !== "" && input.checkValidity();
-        input.closest(".field").classList.toggle("has-error", !valid);
+        var field = input.closest(".field");
+        if (field) field.classList.toggle("has-error", !valid);
         if (!valid && ok) { input.focus(); ok = false; }
       });
       if (!ok) return;
 
       var data = new FormData(form);
-      var line = function (key, value) {
-        return (t(key) || key) + ": " + (value || "-");
-      };
-      var body = [
-        line("form.body.name", data.get("name")),
-        line("form.body.company", data.get("company")),
-        line("form.body.email", data.get("email")),
-        line("form.body.service", data.get("service")),
-        "",
-        (t("form.body.message") || "Message") + ":",
-        data.get("message") || "-"
-      ].join("\n");
+      var lines = fields.map(function (f) {
+        return (t(f.key) || f.key) + ": " + ((data.get(f.name) || "").trim() || "-");
+      });
+      lines.push("", (t(messageKey) || "Message") + ":", (data.get("message") || "-"));
 
-      var subject = (t("form.subject") || "New request") + " — " + (data.get("name") || "");
+      var subject = (t(subjectKey) || "New message") + " — " + (data.get("name") || "");
 
       window.location.href =
-        "mailto:veronica@moyacompanytx.com" +
+        "mailto:" + MAIL_TO +
         "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(body);
+        "&body=" + encodeURIComponent(lines.join("\n"));
     });
 
     form.querySelectorAll("input,textarea").forEach(function (input) {
@@ -239,6 +236,23 @@
       });
     });
   }
+
+  wireMailtoForm("contactForm", "form.subject", [
+    { name: "name",    key: "form.body.name" },
+    { name: "company", key: "form.body.company" },
+    { name: "email",   key: "form.body.email" },
+    { name: "service", key: "form.body.service" }
+  ], "form.body.message");
+
+  wireMailtoForm("careersForm", "join.subject", [
+    { name: "name",       key: "join.body.name" },
+    { name: "phone",      key: "join.body.phone" },
+    { name: "email",      key: "join.body.email" },
+    { name: "area",       key: "join.body.area" },
+    { name: "experience", key: "join.body.exp" },
+    { name: "english",    key: "join.body.english" },
+    { name: "cv",         key: "join.body.cv" }
+  ], "join.body.message");
 
   /* ---------- 9. Servicio preseleccionado desde las tarjetas ----------- */
   var select = document.getElementById("serviceSelect");

@@ -75,7 +75,7 @@ Para cambiarla por una fotografía real, reemplaza ese archivo — idealmente **
 ## Página de propuesta
 
 `propuesta.html` es un documento comercial aparte, en
-`https://moyacompany.dgp-link.com/propuesta.html`. **No está enlazada desde el sitio**
+`https://moyacompany.com/propuesta.html`. **No está enlazada desde el sitio**
 y lleva `noindex, nofollow`, así que solo la ve quien tenga el enlace.
 
 El documento lo **emite DGP GROUP USA** y va dirigido a Moya & Company. Contiene el
@@ -101,7 +101,7 @@ En el `<head>` de `index.html` están las etiquetas **Open Graph** (Facebook, Wh
 LinkedIn, Instagram) y **Twitter Card** (`summary_large_image`), más un bloque
 **JSON-LD** de `ProfessionalService` para buscadores.
 
-Todas apuntan al dominio `https://moyacompany.dgp-link.com/`. **Si cambias de dominio,
+Todas apuntan al dominio `https://moyacompany.com/`. **Si cambias de dominio,
 actualiza también esas URLs** — Open Graph exige rutas absolutas.
 
 La imagen que se ve al compartir es `assets/img/og-image.jpg` (1200×630). Se genera a

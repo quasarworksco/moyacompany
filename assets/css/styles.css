@@ -420,6 +420,31 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   -webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* ---------------------------------------------------------
+   ÚNETE AL EQUIPO
+   --------------------------------------------------------- */
+.join{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);
+  gap:clamp(2rem,5vw,3.5rem);align-items:center}
+.join__title{margin:.2rem 0 0;font-weight:700;letter-spacing:-.03em;line-height:1.12;color:#fff;
+  font-size:clamp(1.8rem,4vw,2.7rem)}
+.join__sub{margin:1.1rem 0 0;max-width:34rem;color:var(--ink-dim);font-size:1.02rem}
+.join__list{list-style:none;margin:1.6rem 0 0;padding:0;display:grid;gap:.75rem}
+.join__list li{display:flex;align-items:flex-start;gap:.75rem;font-size:.95rem;color:var(--ink-dim)}
+.join__form{padding:1.8rem}
+.join__form-title{margin:0 0 .4rem;font-size:.72rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-soft)}
+/* background-color, no el atajo: el atajo resetearía el repeat/position del icono del select */
+.on-dark .field input,.on-dark .field select,.on-dark .field textarea{
+  background-color:rgba(255,255,255,.1);border-color:rgba(255,255,255,.22);color:#fff}
+.on-dark .field input::placeholder,.on-dark .field textarea::placeholder{color:rgba(238,243,255,.45)}
+.on-dark .field input:focus,.on-dark .field select:focus,.on-dark .field textarea:focus{
+  background-color:rgba(255,255,255,.18);border-color:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.14)}
+.on-dark .field select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")}
+.on-dark .field select option{background:#04123f;color:#fff}
+.on-dark .field.has-error input,.on-dark .field.has-error textarea{
+  border-color:#ff8f9a;box-shadow:0 0 0 4px rgba(255,143,154,.2)}
+
+/* ---------------------------------------------------------
    CIERRE
    --------------------------------------------------------- */
 .quote{position:relative;overflow:hidden;border-radius:34px;
@@ -543,8 +568,8 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 /* ---------------------------------------------------------
    RESPONSIVE
    --------------------------------------------------------- */
-@media (max-width:1200px){
-  .nav a{padding:.55rem .7rem;font-size:.88rem}
+@media (max-width:1280px){
+  .nav a{padding:.5rem .62rem;font-size:.86rem}
   .brand__text{font-size:.96rem}
 }
 
@@ -568,6 +593,7 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
 }
 
 @media (max-width:1024px){
+  .join{grid-template-columns:1fr;gap:2.2rem}
   .pricing{grid-template-columns:1fr;gap:2.2rem;justify-items:center;text-align:center}
   .pricing__sub{margin-inline:auto}
   .pricing__cta{justify-content:center}
@@ -576,7 +602,7 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   .contact{grid-template-columns:1fr}
 }
 
-@media (max-width:1040px){
+@media (max-width:1140px){
   .burger{display:grid}
   .header__cta{display:none}
   .nav{position:fixed;inset:0 0 auto;top:0;margin:0;padding:6rem 1.5rem 2rem;
@@ -600,6 +626,7 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   .hero__cta .btn{flex:1 1 100%}
   .form__row{grid-template-columns:1fr}
   .form{padding:1.4rem}
+  .join__form{padding:1.3rem}
   .fab{right:1rem;bottom:1rem;height:54px;width:54px;padding:0;justify-content:center}
   .fab__label{display:none}
   .quote__plate{width:78px;height:78px;border-radius:22px}
