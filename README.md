@@ -127,13 +127,18 @@ Las visitas se guardan en Supabase. No se usan cookies ni se guarda la IP: sólo
 página, el idioma, el tipo de dispositivo, el origen y un identificador de sesión
 que vive en `sessionStorage`.
 
-**Puesta en marcha:**
+**Ya está en marcha.** Vive en el proyecto **`dgp-linkshop`** (compartido con la
+tienda), en dos objetos con prefijo `moya_` dentro del esquema `public`:
 
-1. Crear un proyecto en Supabase.
-2. Ejecutar `supabase/migrations/0001_moya_analytics.sql` (SQL Editor del proyecto).
-   Crea la tabla `moya_pageviews` con RLS — el sitio sólo puede **insertar**, nunca
-   leer — y la función `moya_stats()`, que devuelve los agregados que consume el panel.
-3. Copiar la URL del proyecto y la clave `anon` en `assets/js/supabase-config.js`.
+| Objeto | Qué hace |
+| --- | --- |
+| `moya_pageviews` | Tabla de visitas. RLS activo con una única política: `INSERT` para `anon`. |
+| `moya_stats()` | Función `SECURITY DEFINER` que devuelve sólo agregados. |
+
+No toca ninguna tabla de linkshop: son objetos nuevos, con nombres propios, y la
+política sólo alcanza a `moya_pageviews`. Para moverlo algún día a su propio
+proyecto basta con ejecutar `supabase/migrations/0001_moya_analytics.sql` allí y
+cambiar las dos líneas de `assets/js/supabase-config.js`.
 
 La clave `anon` es pública por diseño y está limitada por las políticas de RLS:
 permite registrar una visita y leer totales, nunca las filas individuales.
