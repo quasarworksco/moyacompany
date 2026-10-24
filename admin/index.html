@@ -53,8 +53,12 @@
         </div>
       </div>
       <nav class="tabs" id="tabs" aria-label="Secciones">
-        <button class="tab is-on" type="button" data-vista="metricas">Métricas</button>
+        <button class="tab is-on" type="button" data-vista="resumen">Resumen</button>
+        <button class="tab" type="button" data-vista="metricas">Métricas</button>
         <button class="tab" type="button" data-vista="llamadas">Llamadas</button>
+        <button class="tab" type="button" data-vista="contactos">Contactos</button>
+        <button class="tab" type="button" data-vista="contenido">Contenido</button>
+        <button class="tab" type="button" data-vista="redes">Redes</button>
       </nav>
       <div class="topbar__actions">
         <span class="quien" id="quien"></span>
@@ -65,6 +69,21 @@
 
   <main class="wrap main">
     <div class="notice" id="notice" hidden></div>
+
+    <!-- ---------- RESUMEN ---------- -->
+    <div class="vista" id="vista-resumen" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title" id="saludo">Resumen</h1>
+          <p class="vista__sub" id="hoyFecha">—</p>
+        </div>
+        <div class="vista__acciones" id="atajos"></div>
+      </div>
+
+      <section class="kpis kpis--4" id="resumenKpis" aria-label="Resumen del día"></section>
+      <div class="resumen" id="resumenBloques"></div>
+      <p class="foot" id="resumenPie"></p>
+    </div>
 
     <!-- ---------- MÉTRICAS ---------- -->
     <div class="vista" id="vista-metricas">
@@ -114,53 +133,162 @@
         </div>
         <div class="vista__acciones">
           <button class="abtn abtn--ghost" type="button" id="recargarLlamadas">Actualizar</button>
-          <button class="abtn abtn--primary" type="button" id="abrirMarcador">Llamar</button>
         </div>
       </div>
 
-      <!-- marcador -->
-      <section class="panel marcador" id="marcador" hidden>
-        <header class="panel__head"><h2 class="panel__title">Nueva llamada</h2></header>
-        <div class="marcador__fila">
-          <label class="afield marcador__num">
-            <span>Número</span>
-            <input type="tel" id="numeroLlamar" placeholder="+1 713 382 7990" autocomplete="tel" />
-          </label>
-          <label class="afield">
-            <span>Grabación</span>
-            <select id="modoGrabacion">
-              <option value="aviso">Grabar con aviso</option>
-              <option value="sin_aviso">Grabar sin aviso (Texas)</option>
-              <option value="no">No grabar</option>
-            </select>
-          </label>
-          <div class="marcador__btns">
-            <button class="abtn abtn--primary" type="button" id="btnLlamar">Marcar</button>
-            <button class="abtn abtn--peligro" type="button" id="btnColgar" hidden>Colgar</button>
-          </div>
-        </div>
-        <p class="marcador__estado" id="marcadorEstado"></p>
-      </section>
-
       <div class="llamadas">
-        <section class="panel llamadas__lista">
-          <header class="panel__head">
-            <h2 class="panel__title">Historial</h2>
-            <select class="filtro" id="filtroLlamadas">
-              <option value="">Todas</option>
-              <option value="entrante">Entrantes</option>
-              <option value="saliente">Salientes</option>
-              <option value="sin_respuesta">Sin respuesta</option>
-            </select>
-          </header>
-          <ul class="lista" id="listaLlamadas"></ul>
-        </section>
+        <div class="llamadas__col">
+          <!-- marcador -->
+          <section class="panel marcador" id="marcador">
+            <header class="panel__head">
+              <div>
+                <h2 class="panel__title">Marcador</h2>
+                <p class="panel__sub">Las llamadas salen desde el navegador.</p>
+              </div>
+            </header>
+
+            <div class="marcador__pantalla">
+              <input type="tel" id="numeroLlamar" placeholder="+1 713 382 7990"
+                     autocomplete="tel" inputmode="tel" aria-label="Número a marcar" />
+              <button class="borrar" type="button" id="btnBorrar" aria-label="Borrar un dígito">⌫</button>
+            </div>
+
+            <div class="teclado" id="teclado" role="group" aria-label="Teclado de marcación">
+              <button class="tecla" type="button" data-d="1"><b>1</b><span>&nbsp;</span></button>
+              <button class="tecla" type="button" data-d="2"><b>2</b><span>ABC</span></button>
+              <button class="tecla" type="button" data-d="3"><b>3</b><span>DEF</span></button>
+              <button class="tecla" type="button" data-d="4"><b>4</b><span>GHI</span></button>
+              <button class="tecla" type="button" data-d="5"><b>5</b><span>JKL</span></button>
+              <button class="tecla" type="button" data-d="6"><b>6</b><span>MNO</span></button>
+              <button class="tecla" type="button" data-d="7"><b>7</b><span>PQRS</span></button>
+              <button class="tecla" type="button" data-d="8"><b>8</b><span>TUV</span></button>
+              <button class="tecla" type="button" data-d="9"><b>9</b><span>WXYZ</span></button>
+              <button class="tecla" type="button" data-d="*"><b>*</b><span>&nbsp;</span></button>
+              <button class="tecla" type="button" data-d="0" data-largo="+"><b>0</b><span>+</span></button>
+              <button class="tecla" type="button" data-d="#"><b>#</b><span>&nbsp;</span></button>
+            </div>
+
+            <label class="afield">
+              <span>Grabación</span>
+              <select id="modoGrabacion">
+                <option value="aviso">Grabar con aviso</option>
+                <option value="sin_aviso">Grabar sin aviso (Texas)</option>
+                <option value="no">No grabar</option>
+              </select>
+            </label>
+
+            <div class="marcador__btns">
+              <button class="abtn abtn--primary abtn--block" type="button" id="btnLlamar">Marcar</button>
+              <button class="abtn abtn--peligro abtn--block" type="button" id="btnColgar" hidden>Colgar</button>
+            </div>
+            <p class="marcador__estado" id="marcadorEstado"></p>
+          </section>
+
+          <section class="panel llamadas__lista">
+            <header class="panel__head">
+              <h2 class="panel__title">Historial</h2>
+              <select class="filtro" id="filtroLlamadas">
+                <option value="">Todas</option>
+                <option value="entrante">Entrantes</option>
+                <option value="saliente">Salientes</option>
+                <option value="sin_respuesta">Sin respuesta</option>
+              </select>
+            </header>
+            <ul class="lista" id="listaLlamadas"></ul>
+          </section>
+        </div>
 
         <section class="panel detalle" id="detalle">
           <p class="detalle__vacio">Elige una llamada para ver su grabación y el resumen.</p>
         </section>
       </div>
     </div>
+
+    <!-- ---------- CONTACTOS ---------- -->
+    <div class="vista" id="vista-contactos" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title">Contactos y prospectos</h1>
+          <p class="vista__sub" id="contactosResumen">—</p>
+        </div>
+        <div class="vista__acciones">
+          <button class="abtn abtn--ghost" type="button" id="recargarContactos">Actualizar</button>
+          <button class="abtn abtn--primary" type="button" id="nuevoContacto">Nuevo contacto</button>
+        </div>
+      </div>
+
+      <section class="kpis kpis--4" aria-label="Resumen de la cartera">
+        <article class="kpi"><p class="kpi__label">Total</p><p class="kpi__value" data-c="total">—</p></article>
+        <article class="kpi"><p class="kpi__label">Prospectos</p><p class="kpi__value" data-c="prospecto">—</p></article>
+        <article class="kpi"><p class="kpi__label">Clientes</p><p class="kpi__value" data-c="cliente">—</p></article>
+        <article class="kpi"><p class="kpi__label">Ingreso mensual</p><p class="kpi__value" data-c="valor">—</p><p class="kpi__delta">De los clientes activos</p></article>
+      </section>
+
+      <div class="cols">
+        <section class="panel cols__lista">
+          <header class="panel__head panel__head--filtros">
+            <h2 class="panel__title">Cartera</h2>
+            <div class="filtros">
+              <input class="buscador" type="search" id="buscaContacto" placeholder="Buscar nombre, empresa, teléfono…" />
+              <select class="filtro" id="filtroContactos">
+                <option value="">Todos</option>
+                <option value="prospecto">Prospectos</option>
+                <option value="cliente">Clientes</option>
+                <option value="pausado">Pausados</option>
+                <option value="perdido">Perdidos</option>
+              </select>
+            </div>
+          </header>
+          <ul class="lista lista--alta" id="listaContactos"></ul>
+        </section>
+
+        <section class="panel detalle" id="fichaContacto">
+          <p class="detalle__vacio">Elige un contacto, o crea uno nuevo.</p>
+        </section>
+      </div>
+    </div>
+
+    <!-- ---------- CONTENIDO DIGITAL ---------- -->
+    <div class="vista" id="vista-contenido" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title">Contenido digital</h1>
+          <p class="vista__sub" id="contenidoResumen">—</p>
+        </div>
+        <div class="vista__acciones">
+          <select class="filtro" id="filtroContenido">
+            <option value="">Todos los estados</option>
+            <option value="por_aprobar">Por aprobar</option>
+            <option value="cambios">Con cambios pedidos</option>
+            <option value="aprobado">Aprobados</option>
+            <option value="publicado">Publicados</option>
+          </select>
+          <button class="abtn abtn--ghost" type="button" id="recargarContenido">Actualizar</button>
+          <button class="abtn abtn--primary" type="button" id="nuevoContenido">Subir diseño</button>
+        </div>
+      </div>
+
+      <div class="cols cols--ancha">
+        <section class="galeria" id="galeria" aria-label="Diseños"></section>
+        <section class="panel detalle" id="fichaContenido">
+          <p class="detalle__vacio">Elige un diseño para verlo, comentarlo y aprobarlo.</p>
+        </section>
+      </div>
+
+      <p class="foot">Los archivos se guardan en un almacén privado: sólo se abren con enlaces firmados que caducan. Esta sección queda lista para conectarse más adelante con el plan de Redes Sociales en autopiloto de DGP.</p>
+    </div>
+
+    <!-- ---------- REDES (Social Media Autopilot de DGP) ---------- -->
+    <div class="vista" id="vista-redes" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title">Redes sociales</h1>
+          <p class="vista__sub">Social Media Autopilot · publicaciones automáticas en Facebook e Instagram</p>
+        </div>
+      </div>
+      <div id="autopilot"></div>
+    </div>
+
   </main>
 </div>
 
