@@ -13,7 +13,10 @@ const sb = createClient(cfg.url, cfg.anonKey, {
 
 const $ = (id) => document.getElementById(id);
 const nf = new Intl.NumberFormat('es-MX');
-const VISTAS = ['metricas', 'llamadas', 'contactos', 'contenido'];
+/* Los módulos son los que la base conoce en puede(); 'resumen' no es un
+   módulo: es la portada, y enseña sólo lo que cada módulo permita. */
+const MODULOS = ['metricas', 'llamadas', 'contactos', 'contenido'];
+const VISTAS = ['resumen', ...MODULOS];
 const permisos = { metricas: false, llamadas: false, contactos: false, contenido: false };
 let sesion = null;
 
@@ -50,10 +53,11 @@ async function aplicarSesion(s) {
   if (!s) return mostrarAcceso();
 
   // La base decide: si no hay fila en admins, puede() devuelve false para todo.
-  const respuestas = await Promise.all(VISTAS.map((v) => sb.rpc('puede', { modulo: v })));
-  VISTAS.forEach((v, i) => { permisos[v] = respuestas[i].data === true; });
+  const respuestas = await Promise.all(MODULOS.map((m) => sb.rpc('puede', { modulo: m })));
+  MODULOS.forEach((m, i) => { permisos[m] = respuestas[i].data === true; });
+  permisos.resumen = MODULOS.some((m) => permisos[m]);
 
-  if (!VISTAS.some((v) => permisos[v])) {
+  if (!permisos.resumen) {
     await sb.auth.signOut();
     return mostrarAcceso('Tu cuenta no tiene acceso al panel. Pide que te den de alta.');
   }
@@ -110,6 +114,7 @@ function irA(vista) {
   document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('is-on', t.dataset.vista === vista));
   VISTAS.forEach((v) => { $('vista-' + v).hidden = v !== vista; });
   aviso('');
+  if (vista === 'resumen')   cargarResumen();
   if (vista === 'metricas')  cargarMetricas();
   if (vista === 'llamadas')  { cargarLlamadas(); comprobarLinea(); }
   if (vista === 'contactos') cargarContactos();
@@ -379,19 +384,52 @@ async function comprobarLinea() {
     lineaOk = false;
     const msg = await motivo(error, data);
     el.innerHTML = `<span class="pill pill--av">Línea no conectada</span> ${escapar(msg)}`;
-    $('abrirMarcador').disabled = true;
+    $('btnLlamar').disabled = true;
     return null;
   }
   lineaOk = true;
   el.innerHTML = `<span class="pill pill--ok">Línea conectada</span> ${escapar(data.numero || '')}`;
-  $('abrirMarcador').disabled = false;
+  $('btnLlamar').disabled = false;
   return data;
 }
 
-$('abrirMarcador').addEventListener('click', () => {
-  const m = $('marcador');
-  m.hidden = !m.hidden;
-  if (!m.hidden) $('numeroLlamar').focus();
+/* El teclado escribe en la pantalla; con una llamada en curso manda el tono
+   (DTMF), que es lo que esperan los menús automáticos del otro lado. */
+const teclado = $('teclado');
+let pulsadaLarga = null;
+
+function marcarTecla(d) {
+  if (conexion) { try { conexion.sendDigits(d); } catch (_) { /* la llamada ya colgó */ } return; }
+  const inp = $('numeroLlamar');
+  inp.value += d;
+  inp.focus();
+}
+
+teclado.addEventListener('pointerdown', (e) => {
+  const t = e.target.closest('.tecla');
+  if (!t || !t.dataset.largo) return;
+  pulsadaLarga = setTimeout(() => {
+    pulsadaLarga = 'hecha';
+    marcarTecla(t.dataset.largo);
+  }, 550);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach((ev) =>
+  teclado.addEventListener(ev, () => {
+    if (typeof pulsadaLarga === 'number') clearTimeout(pulsadaLarga);
+    if (pulsadaLarga !== 'hecha') pulsadaLarga = null;
+  }));
+
+teclado.addEventListener('click', (e) => {
+  const t = e.target.closest('.tecla');
+  if (!t) return;
+  if (pulsadaLarga === 'hecha') { pulsadaLarga = null; return; }  // ya insertó el '+'
+  marcarTecla(t.dataset.d);
+});
+
+$('btnBorrar').addEventListener('click', () => {
+  const inp = $('numeroLlamar');
+  inp.value = inp.value.slice(0, -1);
+  inp.focus();
 });
 
 async function cargarSdkTwilio() {
@@ -426,7 +464,9 @@ $('btnLlamar').addEventListener('click', async () => {
       device.on('error', (e) => { est.textContent = 'Error de la línea: ' + e.message; });
       device.on('disconnect', () => {
         est.textContent = 'Llamada terminada.';
+        conexion = null;
         $('btnColgar').hidden = true;
+        $('btnLlamar').hidden = false;
         setTimeout(cargarLlamadas, 4000);   // da tiempo a que Twilio avise el fin
       });
     } else {
@@ -435,6 +475,7 @@ $('btnLlamar').addEventListener('click', async () => {
     conexion = await device.connect({ params: { To: numero, llamada: fila.id } });
     est.textContent = 'Llamando a ' + numero + '…';
     $('btnColgar').hidden = false;
+    $('btnLlamar').hidden = true;
   } catch (e) {
     est.textContent = e.message;
   }
@@ -442,7 +483,9 @@ $('btnLlamar').addEventListener('click', async () => {
 
 $('btnColgar').addEventListener('click', () => {
   if (device) device.disconnectAll();
+  conexion = null;
   $('btnColgar').hidden = true;
+  $('btnLlamar').hidden = false;
 });
 
 
@@ -943,6 +986,147 @@ async function comentar(id) {
   input.value = '';
   input.focus();
   cargarComentarios(id);
+}
+
+/* =========================================================
+   8. Resumen — la portada del panel
+   Junta en una pantalla lo que ya vive en las otras secciones;
+   cada bloque aparece sólo si la base deja ver ese módulo.
+   ========================================================= */
+const diasAtras = (n) => new Date(Date.now() - n * 864e5).toISOString();
+const hoyISO = () => new Date().toISOString().slice(0, 10);
+
+$('atajos').addEventListener('click', (e) => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.id === 'recargarResumen') cargarResumen();
+  else if (b.dataset.ir) { irA(b.dataset.ir); if (b.dataset.luego) setTimeout(() => $(b.dataset.luego)?.click(), 350); }
+});
+
+async function cargarResumen() {
+  const nombre = (sesion?.user?.email || '').split('@')[0].replace(/[._-]+/g, ' ');
+  $('saludo').textContent = nombre
+    ? `Hola, ${nombre.charAt(0).toUpperCase() + nombre.slice(1)}`
+    : 'Resumen';
+  $('hoyFecha').textContent = new Date().toLocaleDateString('es-MX',
+    { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  $('atajos').innerHTML =
+    (permisos.contactos ? '<button class="abtn abtn--ghost" type="button" data-ir="contactos" data-luego="nuevoContacto">Nuevo contacto</button>' : '') +
+    (permisos.contenido ? '<button class="abtn abtn--ghost" type="button" data-ir="contenido" data-luego="nuevoContenido">Subir diseño</button>' : '') +
+    (permisos.llamadas ? '<button class="abtn abtn--primary" type="button" data-ir="llamadas">Llamar</button>' : '') +
+    '<button class="abtn abtn--ghost" type="button" id="recargarResumen">Actualizar</button>';
+
+  $('resumenKpis').innerHTML = '<article class="kpi"><p class="kpi__label">Cargando…</p><p class="kpi__value">—</p></article>';
+  $('resumenBloques').innerHTML = '';
+
+  const hace7 = diasAtras(7);
+  const nada = { data: null, count: null };
+  const [stats, llamadas7, ultimasLlam, prosp7, ultimosCont, porAprobar, agenda] = await Promise.all([
+    permisos.metricas  ? sb.rpc('moya_stats') : nada,
+    permisos.llamadas  ? sb.from('llamadas').select('id', { count: 'exact', head: true }).gte('created_at', hace7) : nada,
+    permisos.llamadas  ? sb.from('llamadas').select('id,created_at,direccion,estado,numero,duracion_seg,ia_estado,contactos(nombre)')
+                           .order('created_at', { ascending: false }).limit(5) : nada,
+    permisos.contactos ? sb.from('contactos').select('id', { count: 'exact', head: true }).gte('created_at', hace7) : nada,
+    permisos.contactos ? sb.from('contactos').select('id,nombre,empresa,estado,created_at')
+                           .order('created_at', { ascending: false }).limit(5) : nada,
+    permisos.contenido ? sb.from('contenido').select('id', { count: 'exact', head: true }).eq('estado', 'por_aprobar') : nada,
+    permisos.contenido ? sb.from('contenido').select('id,titulo,red,tipo,estado,fecha_publicacion')
+                           .gte('fecha_publicacion', hoyISO()).order('fecha_publicacion', { ascending: true }).limit(5) : nada
+  ]);
+
+  /* ---- indicadores ---- */
+  const t = stats.data?.totales || {};
+  const tarjetas = [];
+  if (permisos.metricas) tarjetas.push(['Visitas hoy', nf.format(t.hoy || 0), 'Del sitio público']);
+  if (permisos.llamadas) tarjetas.push(['Llamadas · 7 días', nf.format(llamadas7.count || 0), 'Entrantes y salientes']);
+  if (permisos.contactos) tarjetas.push(['Contactos nuevos · 7 días', nf.format(prosp7.count || 0), 'Altas en la cartera']);
+  if (permisos.contenido) tarjetas.push(['Diseños por aprobar', nf.format(porAprobar.count || 0), 'Esperan tu visto bueno']);
+  $('resumenKpis').innerHTML = tarjetas.map(([l, v, p]) =>
+    `<article class="kpi"><p class="kpi__label">${l}</p><p class="kpi__value">${v}</p>
+     <p class="kpi__delta">${p}</p></article>`).join('');
+
+  /* ---- bloques ---- */
+  const bloques = [];
+
+  if (permisos.llamadas) {
+    const filas = ultimasLlam.data || [];
+    bloques.push(caja('Últimas llamadas', 'llamadas', filas.length
+      ? filas.map((l) => {
+          const [txt, cl] = ESTADOS[l.estado] || [l.estado, 'av'];
+          return linea(
+            `${escapar(l.contactos?.nombre || l.numero || 'Desconocido')}`,
+            `${l.direccion === 'entrante' ? 'Entrante' : 'Saliente'} · ${fechaCorta(l.created_at)} · ${duracion(l.duracion_seg)}`,
+            `<span class="pill pill--${cl}">${txt}</span>${l.ia_estado === 'listo' ? '<span class="pill pill--ia">IA</span>' : ''}`);
+        }).join('')
+      : vacio('Todavía no hay llamadas.')));
+  }
+
+  if (permisos.contenido) {
+    const filas = agenda.data || [];
+    bloques.push(caja('Próximas publicaciones', 'contenido', filas.length
+      ? filas.map((d) => {
+          const [txt, cl] = D_ESTADOS[d.estado] || [d.estado, ''];
+          return linea(escapar(d.titulo),
+            `${D_REDES[d.red] || d.red} · ${D_TIPOS[d.tipo] || d.tipo}` +
+              (d.fecha_publicacion ? ' · ' + diaCorto(d.fecha_publicacion) : ''),
+            `<span class="pill pill--${cl}">${txt}</span>`);
+        }).join('')
+      : vacio('No hay nada programado de hoy en adelante.')));
+  }
+
+  if (permisos.contactos) {
+    const filas = ultimosCont.data || [];
+    bloques.push(caja('Contactos recientes', 'contactos', filas.length
+      ? filas.map((c) => {
+          const [txt, cl] = C_ESTADOS[c.estado] || [c.estado, ''];
+          return linea(escapar(c.nombre || 'Sin nombre'),
+            `${c.empresa ? escapar(c.empresa) + ' · ' : ''}alta ${fechaCorta(c.created_at)}`,
+            `<span class="pill ${cl ? 'pill--' + cl : ''}">${txt}</span>`);
+        }).join('')
+      : vacio('Todavía no hay contactos.')));
+  }
+
+  if (permisos.metricas) {
+    const serie = (stats.data?.serie || []).slice(-30);
+    bloques.push(caja('Visitas · 30 días', 'metricas',
+      serie.some((d) => d.visitas > 0)
+        ? `<div class="chispa">${chispa(serie)}</div>
+           <p class="chispa__pie">${nf.format(t.dias30 || 0)} visitas en 30 días ·
+             ${nf.format(t.sesiones30 || 0)} visitantes</p>`
+        : vacio('Sin visitas registradas todavía.')));
+  }
+
+  $('resumenBloques').innerHTML = bloques.join('');
+  $('resumenBloques').querySelectorAll('[data-ir]').forEach((b) =>
+    b.addEventListener('click', () => irA(b.dataset.ir)));
+  $('resumenPie').textContent = 'Todo lo de esta pantalla sale de las demás secciones; se actualiza al abrirla.';
+}
+
+const caja = (titulo, ir, cuerpo) => `<section class="panel">
+  <header class="panel__head">
+    <h2 class="panel__title">${titulo}</h2>
+    <button class="abtn abtn--ghost abtn--sm" type="button" data-ir="${ir}">Ver todo</button>
+  </header>${cuerpo}</section>`;
+const linea = (titulo, sub, extra) => `<div class="renglon">
+  <div class="renglon__txt"><b>${titulo}</b><span>${sub}</span></div>
+  <div class="renglon__pills">${extra || ''}</div></div>`;
+const vacio = (txt) => `<p class="renglon__vacio">${txt}</p>`;
+
+/* Chispa: la misma rejilla de la gráfica grande, sin ejes ni etiquetas. */
+function chispa(serie) {
+  const W = 320, H = 68;
+  const top = Math.max(1, ...serie.map((p) => p.visitas));
+  const band = W / serie.length;
+  const bw = Math.min(10, Math.max(2, band - 2));
+  return `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Visitas de los últimos 30 días">` +
+    serie.map((p, i) => {
+      const h = p.visitas > 0 ? Math.max(2, (p.visitas / top) * (H - 4)) : 0;
+      if (!h) return '';
+      const x = i * band + (band - bw) / 2;
+      return `<rect x="${x.toFixed(1)}" y="${(H - h).toFixed(1)}" width="${bw.toFixed(1)}"
+        height="${h.toFixed(1)}" rx="${Math.min(3, bw / 2)}"/>`;
+    }).join('') + '</svg>';
 }
 
 arranque();

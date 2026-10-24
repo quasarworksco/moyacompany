@@ -187,13 +187,39 @@ button,input{font:inherit;color:inherit}
 .pill--ia{color:var(--blue);background:var(--blue-100);border-color:rgba(51,101,250,.25)}
 
 /* ---------- marcador ---------- */
-.marcador__fila{display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap}
-.marcador__num{flex:1 1 220px}
-.marcador__btns{display:flex;gap:.6rem}
-.marcador__estado{margin:.9rem 0 0;font-size:.85rem;color:var(--ink-dim);min-height:1.2em}
+.marcador{display:grid;gap:1rem}
+.marcador .panel__head{margin-bottom:0}
+.marcador__pantalla{position:relative;display:flex;align-items:center}
+.marcador__pantalla input{width:100%;padding:.9rem 3rem .9rem 1.1rem;border-radius:16px;
+  border:1px solid var(--line);background:#fbfcff;color:var(--navy);
+  font-size:1.35rem;font-weight:600;letter-spacing:.02em;text-align:center;
+  font-variant-numeric:tabular-nums;
+  transition:border-color .3s,box-shadow .3s,background .3s}
+.marcador__pantalla input:focus{outline:none;background:#fff;border-color:var(--blue-400);
+  box-shadow:0 0 0 4px rgba(51,101,250,.14)}
+.borrar{position:absolute;right:.5rem;width:2.2rem;height:2.2rem;display:grid;place-items:center;
+  border:0;border-radius:50%;background:none;cursor:pointer;font-size:1rem;color:var(--ink-soft);
+  transition:background .25s,color .25s}
+.borrar:hover{background:#eef2fb;color:var(--navy)}
+
+.teclado{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem}
+.tecla{display:grid;place-items:center;gap:0;padding:.55rem 0;cursor:pointer;
+  border:1px solid var(--line);border-radius:16px;background:#fff;
+  box-shadow:0 8px 18px -16px rgba(9,30,110,.7);
+  transition:transform .15s var(--ease),background .25s,border-color .25s}
+.tecla:hover{background:#f6f8ff;border-color:rgba(51,101,250,.35)}
+.tecla:active{transform:scale(.95);background:var(--blue-100)}
+.tecla b{font-size:1.25rem;font-weight:600;line-height:1.1;color:var(--navy);
+  font-variant-numeric:tabular-nums}
+.tecla span{font-size:.58rem;font-weight:600;letter-spacing:.14em;color:var(--ink-soft);
+  min-height:.8em}
+
+.marcador__btns{display:grid;gap:.6rem}
+.marcador__estado{margin:0;font-size:.85rem;color:var(--ink-dim);min-height:1.2em}
 
 /* ---------- llamadas ---------- */
 .llamadas{display:grid;grid-template-columns:minmax(0,22rem) minmax(0,1fr);gap:1.1rem;align-items:start}
+.llamadas__col{display:grid;gap:1.1rem;align-content:start}
 .filtro{padding:.4rem .7rem;border-radius:99px;border:1px solid var(--line);background:#fff;
   font-size:.8rem;color:var(--ink-dim);cursor:pointer}
 
@@ -364,3 +390,21 @@ button,input{font:inherit;color:inherit}
   .galeria{grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr))}
   .ficha__rejilla{grid-template-columns:1fr}
 }
+
+/* ---------- portada (resumen) ---------- */
+.resumen{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,21rem),1fr));gap:1.1rem}
+.resumen .panel__head{margin-bottom:.9rem}
+
+.renglon{display:flex;align-items:center;justify-content:space-between;gap:.9rem;
+  padding:.6rem 0;border-bottom:1px solid var(--line)}
+.renglon:last-child{border-bottom:0;padding-bottom:0}
+.renglon__txt{display:grid;gap:.1rem;min-width:0}
+.renglon__txt b{font-size:.89rem;font-weight:600;color:var(--navy);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.renglon__txt span{font-size:.76rem;color:var(--ink-soft)}
+.renglon__pills{display:flex;gap:.3rem;flex:0 0 auto}
+.renglon__vacio{margin:0;padding:1.4rem .2rem;font-size:.86rem;color:var(--ink-soft)}
+
+.chispa svg{display:block;width:100%;height:auto}
+.chispa rect{fill:var(--blue-400)}
+.chispa__pie{margin:.7rem 0 0;font-size:.8rem;color:var(--ink-soft)}

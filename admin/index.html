@@ -53,7 +53,8 @@
         </div>
       </div>
       <nav class="tabs" id="tabs" aria-label="Secciones">
-        <button class="tab is-on" type="button" data-vista="metricas">Métricas</button>
+        <button class="tab is-on" type="button" data-vista="resumen">Resumen</button>
+        <button class="tab" type="button" data-vista="metricas">Métricas</button>
         <button class="tab" type="button" data-vista="llamadas">Llamadas</button>
         <button class="tab" type="button" data-vista="contactos">Contactos</button>
         <button class="tab" type="button" data-vista="contenido">Contenido</button>
@@ -67,6 +68,21 @@
 
   <main class="wrap main">
     <div class="notice" id="notice" hidden></div>
+
+    <!-- ---------- RESUMEN ---------- -->
+    <div class="vista" id="vista-resumen" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title" id="saludo">Resumen</h1>
+          <p class="vista__sub" id="hoyFecha">—</p>
+        </div>
+        <div class="vista__acciones" id="atajos"></div>
+      </div>
+
+      <section class="kpis kpis--4" id="resumenKpis" aria-label="Resumen del día"></section>
+      <div class="resumen" id="resumenBloques"></div>
+      <p class="foot" id="resumenPie"></p>
+    </div>
 
     <!-- ---------- MÉTRICAS ---------- -->
     <div class="vista" id="vista-metricas">
@@ -116,47 +132,70 @@
         </div>
         <div class="vista__acciones">
           <button class="abtn abtn--ghost" type="button" id="recargarLlamadas">Actualizar</button>
-          <button class="abtn abtn--primary" type="button" id="abrirMarcador">Llamar</button>
         </div>
       </div>
 
-      <!-- marcador -->
-      <section class="panel marcador" id="marcador" hidden>
-        <header class="panel__head"><h2 class="panel__title">Nueva llamada</h2></header>
-        <div class="marcador__fila">
-          <label class="afield marcador__num">
-            <span>Número</span>
-            <input type="tel" id="numeroLlamar" placeholder="+1 713 382 7990" autocomplete="tel" />
-          </label>
-          <label class="afield">
-            <span>Grabación</span>
-            <select id="modoGrabacion">
-              <option value="aviso">Grabar con aviso</option>
-              <option value="sin_aviso">Grabar sin aviso (Texas)</option>
-              <option value="no">No grabar</option>
-            </select>
-          </label>
-          <div class="marcador__btns">
-            <button class="abtn abtn--primary" type="button" id="btnLlamar">Marcar</button>
-            <button class="abtn abtn--peligro" type="button" id="btnColgar" hidden>Colgar</button>
-          </div>
-        </div>
-        <p class="marcador__estado" id="marcadorEstado"></p>
-      </section>
-
       <div class="llamadas">
-        <section class="panel llamadas__lista">
-          <header class="panel__head">
-            <h2 class="panel__title">Historial</h2>
-            <select class="filtro" id="filtroLlamadas">
-              <option value="">Todas</option>
-              <option value="entrante">Entrantes</option>
-              <option value="saliente">Salientes</option>
-              <option value="sin_respuesta">Sin respuesta</option>
-            </select>
-          </header>
-          <ul class="lista" id="listaLlamadas"></ul>
-        </section>
+        <div class="llamadas__col">
+          <!-- marcador -->
+          <section class="panel marcador" id="marcador">
+            <header class="panel__head">
+              <div>
+                <h2 class="panel__title">Marcador</h2>
+                <p class="panel__sub">Las llamadas salen desde el navegador.</p>
+              </div>
+            </header>
+
+            <div class="marcador__pantalla">
+              <input type="tel" id="numeroLlamar" placeholder="+1 713 382 7990"
+                     autocomplete="tel" inputmode="tel" aria-label="Número a marcar" />
+              <button class="borrar" type="button" id="btnBorrar" aria-label="Borrar un dígito">⌫</button>
+            </div>
+
+            <div class="teclado" id="teclado" role="group" aria-label="Teclado de marcación">
+              <button class="tecla" type="button" data-d="1"><b>1</b><span>&nbsp;</span></button>
+              <button class="tecla" type="button" data-d="2"><b>2</b><span>ABC</span></button>
+              <button class="tecla" type="button" data-d="3"><b>3</b><span>DEF</span></button>
+              <button class="tecla" type="button" data-d="4"><b>4</b><span>GHI</span></button>
+              <button class="tecla" type="button" data-d="5"><b>5</b><span>JKL</span></button>
+              <button class="tecla" type="button" data-d="6"><b>6</b><span>MNO</span></button>
+              <button class="tecla" type="button" data-d="7"><b>7</b><span>PQRS</span></button>
+              <button class="tecla" type="button" data-d="8"><b>8</b><span>TUV</span></button>
+              <button class="tecla" type="button" data-d="9"><b>9</b><span>WXYZ</span></button>
+              <button class="tecla" type="button" data-d="*"><b>*</b><span>&nbsp;</span></button>
+              <button class="tecla" type="button" data-d="0" data-largo="+"><b>0</b><span>+</span></button>
+              <button class="tecla" type="button" data-d="#"><b>#</b><span>&nbsp;</span></button>
+            </div>
+
+            <label class="afield">
+              <span>Grabación</span>
+              <select id="modoGrabacion">
+                <option value="aviso">Grabar con aviso</option>
+                <option value="sin_aviso">Grabar sin aviso (Texas)</option>
+                <option value="no">No grabar</option>
+              </select>
+            </label>
+
+            <div class="marcador__btns">
+              <button class="abtn abtn--primary abtn--block" type="button" id="btnLlamar">Marcar</button>
+              <button class="abtn abtn--peligro abtn--block" type="button" id="btnColgar" hidden>Colgar</button>
+            </div>
+            <p class="marcador__estado" id="marcadorEstado"></p>
+          </section>
+
+          <section class="panel llamadas__lista">
+            <header class="panel__head">
+              <h2 class="panel__title">Historial</h2>
+              <select class="filtro" id="filtroLlamadas">
+                <option value="">Todas</option>
+                <option value="entrante">Entrantes</option>
+                <option value="saliente">Salientes</option>
+                <option value="sin_respuesta">Sin respuesta</option>
+              </select>
+            </header>
+            <ul class="lista" id="listaLlamadas"></ul>
+          </section>
+        </div>
 
         <section class="panel detalle" id="detalle">
           <p class="detalle__vacio">Elige una llamada para ver su grabación y el resumen.</p>
