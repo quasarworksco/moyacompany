@@ -131,7 +131,11 @@ $('tabs').addEventListener('click', (e) => {
 async function cargarMetricas() {
   $('stamp').textContent = 'Cargando…';
   const { data, error } = await sb.rpc('moya_stats');
-  if (error) { $('stamp').textContent = '—'; return aviso('<b>No se pudieron cargar las métricas.</b> ' + escapar(error.message), 'error'); }
+  if (error || !data) {
+    $('stamp').textContent = '—';
+    return aviso('<b>No se pudieron cargar las métricas.</b> ' +
+      escapar(error ? error.message : 'Tu cuenta no tiene acceso a este módulo.'), 'error');
+  }
   pintarMetricas(data);
 }
 $('refresh').addEventListener('click', cargarMetricas);
