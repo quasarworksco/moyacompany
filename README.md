@@ -24,11 +24,12 @@ de la marca funcione como acento y no sature la página.
 index.html               Página completa (hero, servicios, tarifas, beneficios, nosotros,
                          cierre, contacto, footer) + meta Open Graph / Twitter y JSON-LD
 propuesta.html           Propuesta comercial para la clienta (no enlazada, noindex)
-admin/index.html         Panel de administración con métricas (no enlazado, noindex)
+admin/index.html         Panel de administración: métricas + CRM (no enlazado, noindex)
 assets/js/analytics.js   Registro de visitas (sin cookies)
 assets/js/admin.js       Acceso y panel de métricas
 assets/js/supabase-config.js  Credenciales de Supabase
-supabase/migrations/     SQL de la tabla de visitas y la función de agregados
+supabase/migrations/     Esquema de la base (visitas y CRM)
+supabase/functions/      Edge functions (llamadas con Twilio + IA)
 assets/css/styles.css    Estilos: glassmorfismo, animaciones, responsive
 assets/css/propuesta.css Estilos propios de la propuesta
 assets/css/admin.css     Estilos del panel
@@ -106,20 +107,80 @@ portada y el texto de ahorro.
 `admin/index.html` se sirve en `https://moyacompany.com/admin/`. No está enlazado
 desde el sitio y lleva `noindex, nofollow`.
 
-**Usuario:** `admin` · **Contraseña:** `Quasar123`
+**El acceso es con correo y contraseña reales** (Supabase Auth). A diferencia del
+portero anterior, aquí el permiso lo decide la base de datos: cada consulta pasa por
+`puede(modulo)`, que exige una fila activa en `admins`. El navegador no decide nada —
+aunque alguien edite el JavaScript, la base le sigue negando los datos.
 
-> ⚠️ **Esto no es seguridad real.** El sitio es estático: la validación ocurre en el
-> navegador y el hash de la contraseña viaja en `assets/js/admin.js`. Cualquiera que
-> mire el código fuente puede saltarse el acceso. Sirve para que el panel no quede a
-> la vista, no para proteger información. **No guardes nada sensible detrás de él.**
-> Para un acceso de verdad hace falta un backend con sesión en servidor.
+### Dar de alta a alguien
 
-Para cambiar la contraseña, genera el hash y reemplaza `PASS_SHA256` en
-`assets/js/admin.js`:
+1. En Supabase → **Authentication → Users → Add user**, con su correo y contraseña
+   (marca «Auto Confirm User»).
+2. En el **SQL Editor**:
 
-```bash
-printf '%s' 'TuNuevaClave' | sha256sum
+   ```sql
+   select public.alta_admin('correo@moyacompanytx.com', 'Nombre Apellido');
+   ```
+
+   Eso le da rol `admin`, que ve todos los módulos.
+
+Para un acceso limitado, en vez de `alta_admin` inserta la fila a mano con los módulos
+que deba ver:
+
+```sql
+insert into public.admins (user_id, email, nombre, rol, permisos)
+select id, email, 'Nombre', 'agente', array['llamadas']
+from auth.users where email = 'agente@moyacompanytx.com';
 ```
+
+Módulos disponibles: `metricas`, `llamadas`, `contactos`, `admins`.
+
+### Secciones
+
+- **Métricas** — las visitas del sitio público.
+- **Llamadas** — historial, grabación, transcripción y el resumen de la IA; y el
+  marcador para llamar desde el navegador.
+
+## Llamadas y CRM
+
+La sección de llamadas se apoya en tres piezas:
+
+| Pieza | Para qué |
+| --- | --- |
+| **Twilio** | La voz: llamar desde el navegador, recibir en el panel, grabar |
+| **Supabase Storage** | Guarda la grabación (bucket privado `llamadas`) |
+| **Groq** | Whisper transcribe y un modelo Llama extrae resumen, datos y tareas |
+
+La edge function `llamadas` (desplegada) orquesta todo. Mientras no haya credenciales
+de Twilio, el panel muestra «Línea no conectada» y el resto sigue funcionando.
+
+### Conectar Twilio y la IA
+
+Las claves se guardan en la tabla `integraciones`, para poder rotarlas sin volver a
+desplegar. Esa tabla tiene RLS sin políticas: **nadie la alcanza por la API**, sólo la
+función con `service_role`. Desde el SQL Editor:
+
+```sql
+insert into public.integraciones (clave, valor) values
+  ('TWILIO_ACCOUNT_SID',     '...'),
+  ('TWILIO_AUTH_TOKEN',      '...'),
+  ('TWILIO_API_KEY_SID',     '...'),
+  ('TWILIO_API_KEY_SECRET',  '...'),
+  ('TWILIO_NUMERO',          '+1XXXXXXXXXX'),
+  ('GROQ_API_KEY',           '...')
+on conflict (clave) do update set valor = excluded.valor, updated_at = now();
+```
+
+La primera vez que alguien abra el marcador, la función crea sola la «TwiML App» en
+Twilio y apunta el número a sí misma. No hay que configurar webhooks a mano.
+
+### Grabación y consentimiento
+
+Texas es de consentimiento de una parte, así que a un contacto con `region = 'TX'` se
+le graba sin aviso. A cualquier otro se le reproduce el aviso en inglés y español
+antes de grabar. En el marcador se puede forzar las tres opciones: con aviso, sin
+aviso o no grabar. Las llamadas de menos de 5 segundos y los buzones vacíos no se
+guardan.
 
 ## Métricas
 
@@ -127,18 +188,21 @@ Las visitas se guardan en Supabase. No se usan cookies ni se guarda la IP: sólo
 página, el idioma, el tipo de dispositivo, el origen y un identificador de sesión
 que vive en `sessionStorage`.
 
-**Ya está en marcha.** Vive en el proyecto **`dgp-linkshop`** (compartido con la
-tienda), en dos objetos con prefijo `moya_` dentro del esquema `public`:
+**Ya está en marcha.** Vive en el proyecto propio de Moya
+(`hadpcfbmhgioclzqokvo`), en dos objetos con prefijo `moya_`:
 
 | Objeto | Qué hace |
 | --- | --- |
 | `moya_pageviews` | Tabla de visitas. RLS activo con una única política: `INSERT` para `anon`. |
 | `moya_stats()` | Función `SECURITY DEFINER` que devuelve sólo agregados. |
 
-No toca ninguna tabla de linkshop: son objetos nuevos, con nombres propios, y la
-política sólo alcanza a `moya_pageviews`. Para moverlo algún día a su propio
-proyecto basta con ejecutar `supabase/migrations/0001_moya_analytics.sql` allí y
-cambiar las dos líneas de `assets/js/supabase-config.js`.
+Los agregados exigen sesión iniciada: `moya_stats()` sólo se puede llamar con un
+usuario del panel. El sitio público, sin sesión, únicamente puede **insertar** una
+visita.
+
+> Las métricas vivieron un tiempo en el proyecto `dgp-linkshop`. Al crear el proyecto
+> propio se mudaron aquí. Las tablas viejas (`moya_pageviews` y `moya_stats`) siguen
+> en linkshop sin usarse y se pueden borrar cuando quieras.
 
 La clave `anon` es pública por diseño y está limitada por las políticas de RLS:
 permite registrar una visita y leer totales, nunca las filas individuales.
