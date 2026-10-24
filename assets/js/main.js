@@ -196,63 +196,109 @@
     });
   }
 
-  /* ---------- 8. Formularios -> mailto --------------------------------- */
+  /* ---------- 8. Formularios -> CRM ------------------------------------
+     Van a Supabase por una función (recibir_contacto / recibir_postulacion):
+     el sitio no tiene permiso de escribir en ninguna tabla, la función
+     valida y decide. Si Supabase no está configurado o no responde, se
+     cae al correo de siempre para no perder el mensaje. */
   var MAIL_TO = "veronica@moyacompanytx.com";
+  var SB = window.MOYA_SUPABASE || {};
 
-  function wireMailtoForm(formId, subjectKey, fields, messageKey) {
+  function porCorreo(form, fields, subjectKey, messageKey) {
+    var data = new FormData(form);
+    var lines = fields.map(function (f) {
+      return (t(f.key) || f.key) + ": " + ((data.get(f.name) || "").trim() || "-");
+    });
+    lines.push("", (t(messageKey) || "Message") + ":", (data.get("message") || "-"));
+    window.location.href = "mailto:" + MAIL_TO +
+      "?subject=" + encodeURIComponent((t(subjectKey) || "New message") + " — " + (data.get("name") || "")) +
+      "&body=" + encodeURIComponent(lines.join("\n"));
+  }
+
+  function wireForm(formId, rpc, mapa, fields, subjectKey, messageKey) {
     var form = document.getElementById(formId);
     if (!form) return;
+    var estado = form.querySelector(".form__estado");
+    var boton = form.querySelector('button[type="submit"]');
+    var etiqueta = boton ? boton.querySelector("span") : null;
+    var textoBoton = etiqueta ? etiqueta.textContent : "";
+
+    function decir(msg, mal) {
+      if (!estado) return;
+      estado.textContent = msg;
+      estado.classList.toggle("is-mal", !!mal);
+      estado.hidden = !msg;
+    }
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var ok = true;
-
       form.querySelectorAll("[required]").forEach(function (input) {
-        var valid = input.value.trim() !== "" && input.checkValidity();
-        var field = input.closest(".field");
-        if (field) field.classList.toggle("has-error", !valid);
-        if (!valid && ok) { input.focus(); ok = false; }
+        var valido = input.value.trim() !== "" && input.checkValidity();
+        var campo = input.closest(".field");
+        if (campo) campo.classList.toggle("has-error", !valido);
+        if (!valido && ok) { input.focus(); ok = false; }
       });
       if (!ok) return;
 
       var data = new FormData(form);
-      var lines = fields.map(function (f) {
-        return (t(f.key) || f.key) + ": " + ((data.get(f.name) || "").trim() || "-");
+      if (!SB.url || !SB.anonKey) return porCorreo(form, fields, subjectKey, messageKey);
+
+      var cuerpo = {};
+      Object.keys(mapa).forEach(function (k) { cuerpo[k] = (data.get(mapa[k]) || "").trim(); });
+
+      decir(t("form.enviando") || "Enviando…");
+      if (boton) boton.disabled = true;
+      if (etiqueta) etiqueta.textContent = t("form.enviando") || "Enviando…";
+
+      fetch(SB.url.replace(/\/+$/, "") + "/rest/v1/rpc/" + rpc, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": SB.anonKey,
+          "Authorization": "Bearer " + SB.anonKey
+        },
+        body: JSON.stringify({ p: cuerpo })
+      }).then(function (r) {
+        return r.ok ? r.json() : r.json().then(function (j) { throw new Error(j.message || j.hint || ""); });
+      }).then(function () {
+        form.reset();
+        decir(t(formId === "careersForm" ? "join.ok" : "form.ok") || "¡Listo!");
+      }).catch(function (err) {
+        // El mensaje de la función es para la persona; cualquier otro fallo
+        // (red, CORS) no debe dejarla sin forma de escribir.
+        if (err && err.message) decir(err.message, true);
+        else { decir(""); porCorreo(form, fields, subjectKey, messageKey); }
+      }).then(function () {
+        if (boton) boton.disabled = false;
+        if (etiqueta) etiqueta.textContent = textoBoton;
       });
-      lines.push("", (t(messageKey) || "Message") + ":", (data.get("message") || "-"));
-
-      var subject = (t(subjectKey) || "New message") + " — " + (data.get("name") || "");
-
-      window.location.href =
-        "mailto:" + MAIL_TO +
-        "?subject=" + encodeURIComponent(subject) +
-        "&body=" + encodeURIComponent(lines.join("\n"));
     });
 
     form.querySelectorAll("input,textarea").forEach(function (input) {
       input.addEventListener("input", function () {
-        var field = input.closest(".field");
-        if (field) field.classList.remove("has-error");
+        var campo = input.closest(".field");
+        if (campo) campo.classList.remove("has-error");
       });
     });
   }
 
-  wireMailtoForm("contactForm", "form.subject", [
-    { name: "name",    key: "form.body.name" },
-    { name: "company", key: "form.body.company" },
-    { name: "email",   key: "form.body.email" },
-    { name: "service", key: "form.body.service" }
-  ], "form.body.message");
+  wireForm("contactForm", "recibir_contacto",
+    { nombre: "name", empresa: "company", email: "email", servicio: "service",
+      mensaje: "message", trampa: "trampa" },
+    [{ name: "name", key: "form.body.name" }, { name: "company", key: "form.body.company" },
+     { name: "email", key: "form.body.email" }, { name: "service", key: "form.body.service" }],
+    "form.subject", "form.body.message");
 
-  wireMailtoForm("careersForm", "join.subject", [
-    { name: "name",       key: "join.body.name" },
-    { name: "phone",      key: "join.body.phone" },
-    { name: "email",      key: "join.body.email" },
-    { name: "area",       key: "join.body.area" },
-    { name: "experience", key: "join.body.exp" },
-    { name: "english",    key: "join.body.english" },
-    { name: "cv",         key: "join.body.cv" }
-  ], "join.body.message");
+  wireForm("careersForm", "recibir_postulacion",
+    { nombre: "name", telefono: "phone", email: "email", area: "area",
+      experiencia: "experience", ingles: "english", cv: "cv",
+      mensaje: "message", trampa: "trampa" },
+    [{ name: "name", key: "join.body.name" }, { name: "phone", key: "join.body.phone" },
+     { name: "email", key: "join.body.email" }, { name: "area", key: "join.body.area" },
+     { name: "experience", key: "join.body.exp" }, { name: "english", key: "join.body.english" },
+     { name: "cv", key: "join.body.cv" }],
+    "join.subject", "join.body.message");
 
   /* ---------- 9. Servicio preseleccionado desde las tarjetas ----------- */
   var select = document.getElementById("serviceSelect");

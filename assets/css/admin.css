@@ -381,6 +381,101 @@ button,input{font:inherit;color:inherit}
 .charla__form input:focus{outline:none;background:#fff;border-color:var(--blue-400);
   box-shadow:0 0 0 4px rgba(51,101,250,.14)}
 
+/* ---------- conmutadores ---------- */
+.segmentos{display:inline-flex;gap:.25rem;padding:.25rem;border-radius:99px;
+  background:#e8edfb;border:1px solid var(--line);
+  /* dentro de .vista (una rejilla) se estiraría de lado a lado */
+  justify-self:start;width:max-content;max-width:100%}
+.segmentos--chico{padding:.2rem}
+.segmento{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border:0;
+  border-radius:99px;background:none;cursor:pointer;font-size:.85rem;font-weight:600;
+  color:var(--ink-dim);transition:background .25s,color .25s,box-shadow .25s}
+.segmentos--chico .segmento{padding:.38rem .85rem;font-size:.8rem}
+.segmento:hover{color:var(--navy)}
+.segmento.is-on{color:var(--navy);background:#fff;box-shadow:0 6px 14px -10px rgba(9,30,110,.9)}
+.bolita{display:inline-grid;place-items:center;min-width:1.2rem;height:1.2rem;padding:0 .3rem;
+  border-radius:99px;font-size:.68rem;font-weight:700;color:#fff;background:var(--blue-400)}
+
+/* ---------- ficha: seguimientos y actividad ---------- */
+.det__acciones{display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.det__acciones--fila{margin:-.4rem 0 1rem}
+.ficha__extra{display:grid;gap:1.4rem;margin-top:1.4rem;padding-top:1.2rem;border-top:1px solid var(--line)}
+.ficha__cargando{margin:1.2rem 0 0;font-size:.85rem;color:var(--ink-soft)}
+.bloque{display:grid;gap:.7rem}
+.bloque .ficha__h3{margin:0}
+
+.tareas{list-style:none;margin:0;padding:0;display:grid;gap:.3rem}
+.tarea{display:flex;align-items:center;gap:.6rem;padding:.5rem .2rem;
+  border-bottom:1px solid var(--line);font-size:.9rem}
+.tarea:last-child{border-bottom:0}
+.tarea label{display:flex;align-items:center;gap:.6rem;flex:1;min-width:0;cursor:pointer}
+.tarea input{width:1.05rem;height:1.05rem;accent-color:var(--blue);cursor:pointer;flex:0 0 auto}
+.tarea label span{color:var(--ink-dim);overflow-wrap:anywhere}
+.tarea.is-hecha label span{color:var(--ink-soft);text-decoration:line-through}
+.tarea__fecha{font-size:.76rem;color:var(--ink-soft);white-space:nowrap}
+.tarea.is-tarde .tarea__fecha{color:var(--bad);font-weight:600}
+.tarea__x{border:0;background:none;cursor:pointer;font-size:1.05rem;line-height:1;
+  color:var(--ink-soft);padding:.1rem .3rem;border-radius:8px}
+.tarea__x:hover{color:var(--bad);background:#fdeded}
+.tarea__alta{display:flex;gap:.5rem;flex-wrap:wrap}
+.tarea__alta input[type="text"],.tarea__alta input:not([type]){flex:1 1 11rem;min-width:0}
+.tarea__alta input{padding:.55rem .9rem;border-radius:99px;border:1px solid var(--line);
+  background:#fbfcff;font-size:.86rem;color:var(--navy)}
+.tarea__alta input:focus{outline:none;background:#fff;border-color:var(--blue-400);
+  box-shadow:0 0 0 4px rgba(51,101,250,.14)}
+
+.tiempo{list-style:none;margin:0;padding:0 0 0 1.1rem;display:grid;gap:1rem;
+  border-left:2px solid var(--line)}
+.tiempo__it{position:relative;display:grid;gap:.15rem}
+.tiempo__it::before{content:'';position:absolute;left:-1.47rem;top:.42rem;width:9px;height:9px;
+  border-radius:50%;background:var(--blue-400);box-shadow:0 0 0 3px var(--surface)}
+.tiempo__it--tel::before{background:#2f9e54}
+.tiempo__cuando{font-size:.74rem;color:var(--ink-soft)}
+.tiempo__it b{font-size:.88rem;font-weight:600;color:var(--navy)}
+.tiempo__it p{margin:.15rem 0 0;font-size:.86rem;line-height:1.55;color:var(--ink-dim);
+  overflow-wrap:anywhere}
+
+.det__cv{margin:0 0 1rem;font-size:.9rem}
+.det__cv a{color:var(--blue);font-weight:600;text-decoration:underline}
+.det__lista--tareas{list-style:none;padding-left:0}
+.det__lista--tareas li{display:flex;align-items:center;justify-content:space-between;gap:.8rem}
+
+/* ---------- calendario de contenido ---------- */
+.lienzos{min-width:0}
+.calendario{padding:1.2rem 1.3rem}
+.cal__head{display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  flex-wrap:wrap;margin-bottom:1rem}
+.cal__nav{display:flex;align-items:center;gap:.7rem}
+.cal__nav .panel__title{min-width:9.5rem;text-align:center;text-transform:capitalize}
+.cal__dias{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.35rem;margin-bottom:.35rem}
+.cal__dias span{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--ink-soft);text-align:center}
+/* minmax(0,1fr) y no 1fr: si no, el título de una pieza ensancha su columna. */
+.cal__rejilla{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:.35rem}
+.dia{min-height:5.6rem;padding:.35rem;border-radius:12px;background:#fbfcff;
+  border:1px solid var(--line);display:grid;gap:.25rem;align-content:start;
+  transition:background .2s,border-color .2s}
+.dia--fuera{background:none;border-color:transparent}
+.dia.is-hoy{border-color:rgba(51,101,250,.45);background:#f3f7ff}
+.dia.is-destino,.cal__pendientes.is-destino{background:var(--blue-100);border-color:var(--blue-400)}
+.dia__n{font-size:.72rem;font-weight:600;color:var(--ink-soft);text-align:right}
+.dia.is-hoy .dia__n{color:var(--blue)}
+
+.chip-pieza{display:flex;align-items:center;gap:.35rem;width:100%;padding:.25rem .4rem;
+  border:1px solid var(--line);border-radius:8px;background:#fff;cursor:grab;text-align:left;
+  font-size:.72rem;line-height:1.3;color:var(--ink-dim)}
+.chip-pieza:active{cursor:grabbing}
+.chip-pieza.is-on{border-color:var(--blue-400);box-shadow:0 0 0 2px rgba(51,101,250,.18)}
+.chip-pieza__red{flex:0 0 auto;padding:.05rem .25rem;border-radius:4px;font-size:.6rem;
+  font-weight:700;letter-spacing:.04em;color:var(--blue);background:var(--blue-100)}
+.chip-pieza__t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip-pieza--ok .chip-pieza__red{color:#14612f;background:#e8f6ed}
+.chip-pieza--av .chip-pieza__red{color:#7a4a05;background:#fdf4e3}
+.chip-pieza--mal .chip-pieza__red{color:#7a1d20;background:#fdeded}
+.cal__pendientes{margin-top:1rem;padding:.9rem 1rem;border-radius:14px;border:1px dashed var(--line);
+  display:grid;gap:.3rem;transition:background .2s,border-color .2s}
+.cal__pendientes .ficha__h3{margin:0 0 .3rem}
+
 @media (max-width:1100px){
   .cols,.cols--ancha{grid-template-columns:1fr}
   .cols__lista{position:static}
@@ -389,6 +484,14 @@ button,input{font:inherit;color:inherit}
 @media (max-width:560px){
   .galeria{grid-template-columns:repeat(auto-fill,minmax(8.5rem,1fr))}
   .ficha__rejilla{grid-template-columns:1fr}
+  /* En un móvil no se arrastra bien: el calendario pasa a lista de días. */
+  .cal__dias{display:none}
+  .cal__rejilla{grid-template-columns:1fr}
+  .dia{min-height:0;grid-template-columns:2.2rem 1fr;align-items:center}
+  .dia:not(.is-hoy):not(:has(.chip-pieza)){display:none}
+  .dia__n{text-align:left;font-size:.82rem}
+  .dia .chip-pieza{grid-column:2}
+  .dia__n{grid-row:1;grid-column:1}
 }
 
 /* ---------- portada (resumen) ---------- */
