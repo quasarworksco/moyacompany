@@ -100,5 +100,6 @@ as $$
   );
 $$;
 
-revoke all on function public.moya_stats() from public;
-grant execute on function public.moya_stats() to anon, authenticated;
+-- Los agregados ahora exigen sesión: el panel entra con correo y contraseña.
+revoke all on function public.moya_stats() from public, anon, authenticated;
+grant execute on function public.moya_stats() to authenticated;

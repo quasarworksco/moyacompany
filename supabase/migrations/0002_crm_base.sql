@@ -126,6 +126,11 @@ as $$ select coalesce(jsonb_object_agg(clave, valor), '{}'::jsonb) from public.i
 
 revoke all on function public.claves_integracion() from public, anon, authenticated;
 
+-- puede(): sólo con sesión iniciada. El revoke a PUBLIC es necesario:
+-- anon hereda de PUBLIC, así que revocarle a anon por separado no basta.
+revoke execute on function public.puede(text) from public, anon, authenticated;
+grant  execute on function public.puede(text) to authenticated;
+
 -- ---------- 6. Alta del primer administrador ----------
 -- Al crear el usuario en Authentication → Users, esto le da acceso total.
 create or replace function public.alta_admin(correo text, nombre text default null)
@@ -148,3 +153,11 @@ begin
 end $$;
 
 revoke all on function public.alta_admin(text, text) from public, anon, authenticated;
+
+-- Supabase crea rls_auto_enable() si activaste «Enable automatic RLS».
+-- La dispara un event trigger del sistema; nadie debe poder invocarla por API.
+do $$ begin
+  if to_regprocedure('public.rls_auto_enable()') is not null then
+    execute 'revoke execute on function public.rls_auto_enable() from public, anon, authenticated';
+  end if;
+end $$;

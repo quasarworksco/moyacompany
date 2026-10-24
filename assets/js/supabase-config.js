@@ -1,15 +1,15 @@
 /* =========================================================
-   Conexión a Supabase — métricas del sitio
+   Conexión a Supabase — Moya & Company
    ---------------------------------------------------------
-   Proyecto: dgp-linkshop (compartido). Las métricas viven en
-   los objetos con prefijo moya_ y no tocan nada de linkshop.
+   Proyecto propio: "Moya Company" (hadpcfbmhgioclzqokvo).
+   Aquí viven las métricas del sitio y el CRM del panel.
 
-   Esta clave es PÚBLICA por diseño: va en el código del sitio
-   y está limitada por las políticas de la base de datos.
-   Sólo permite registrar una visita y leer totales agregados;
-   nunca leer filas ni tocar otras tablas.
+   Esta clave es PÚBLICA por diseño: viaja en el código del
+   sitio y está acotada por las políticas de la base.
+   Sin sesión sólo permite registrar una visita: no puede
+   leer filas, ni las métricas, ni nada del CRM.
    ========================================================= */
 window.MOYA_SUPABASE = {
-  url: "https://oubyfnzvtbfhduiynqia.supabase.co",
-  anonKey: "sb_publishable_uEdzJpKC1p55rT4MkWlPwQ_d5R8J5E1"
+  url: "https://hadpcfbmhgioclzqokvo.supabase.co",
+  anonKey: "sb_publishable_EysGFxrcI2BK2Qj9l_Psfw_krwxyERq"
 };
