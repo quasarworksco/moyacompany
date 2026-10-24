@@ -212,6 +212,7 @@
           <p class="vista__sub" id="contactosResumen">—</p>
         </div>
         <div class="vista__acciones">
+          <button class="abtn abtn--ghost" type="button" id="exportarContactos">Exportar CSV</button>
           <button class="abtn abtn--ghost" type="button" id="recargarContactos">Actualizar</button>
           <button class="abtn abtn--primary" type="button" id="nuevoContacto">Nuevo contacto</button>
         </div>
@@ -224,10 +225,15 @@
         <article class="kpi"><p class="kpi__label">Ingreso mensual</p><p class="kpi__value" data-c="valor">—</p><p class="kpi__delta">De los clientes activos</p></article>
       </section>
 
+      <div class="segmentos" id="segContactos" role="tablist">
+        <button class="segmento is-on" type="button" role="tab" data-lado="cartera">Cartera</button>
+        <button class="segmento" type="button" role="tab" data-lado="postulantes">Postulantes</button>
+      </div>
+
       <div class="cols">
         <section class="panel cols__lista">
           <header class="panel__head panel__head--filtros">
-            <h2 class="panel__title">Cartera</h2>
+            <h2 class="panel__title" id="tituloLista">Cartera</h2>
             <div class="filtros">
               <input class="buscador" type="search" id="buscaContacto" placeholder="Buscar nombre, empresa, teléfono…" />
               <select class="filtro" id="filtroContactos">
@@ -263,13 +269,20 @@
             <option value="aprobado">Aprobados</option>
             <option value="publicado">Publicados</option>
           </select>
+          <div class="segmentos segmentos--chico" id="segContenido">
+            <button class="segmento is-on" type="button" data-modo="galeria">Galería</button>
+            <button class="segmento" type="button" data-modo="calendario">Calendario</button>
+          </div>
           <button class="abtn abtn--ghost" type="button" id="recargarContenido">Actualizar</button>
           <button class="abtn abtn--primary" type="button" id="nuevoContenido">Subir diseño</button>
         </div>
       </div>
 
       <div class="cols cols--ancha">
-        <section class="galeria" id="galeria" aria-label="Diseños"></section>
+        <div class="lienzos">
+          <section class="galeria" id="galeria" aria-label="Diseños"></section>
+          <section class="panel calendario" id="calendario" aria-label="Calendario de publicaciones" hidden></section>
+        </div>
         <section class="panel detalle" id="fichaContenido">
           <p class="detalle__vacio">Elige un diseño para verlo, comentarlo y aprobarlo.</p>
         </section>

@@ -439,11 +439,16 @@
                     placeholder="Tu experiencia, disponibilidad y por qué te interesa…"></textarea>
         </label>
 
+        <div class="trampa" aria-hidden="true">
+          <label>No llenes esto<input type="text" name="trampa" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
         <button class="btn btn--primary btn--block" type="submit">
           <span data-i18n="join.send">Enviar postulación</span>
           <svg viewBox="0 0 24 24" class="btn__ico" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
-        <p class="form__hint" data-i18n="join.hint">Se abrirá tu correo con la postulación lista. Puedes adjuntar tu CV ahí antes de enviarla.</p>
+        <p class="form__estado" role="status" hidden></p>
+        <p class="form__hint" data-i18n="join.hint">Deja el enlace a tu CV arriba. Revisamos cada postulación.</p>
       </form>
     </div>
   </section>
@@ -557,11 +562,16 @@
                       placeholder="Cuéntanos brevemente qué necesitas…"></textarea>
           </label>
 
+          <div class="trampa" aria-hidden="true">
+            <label>No llenes esto<input type="text" name="trampa" tabindex="-1" autocomplete="off" /></label>
+          </div>
+
           <button class="btn btn--primary btn--block" type="submit">
             <span data-i18n="form.send">Enviar mensaje</span>
             <svg viewBox="0 0 24 24" class="btn__ico" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
           </button>
-          <p class="form__hint" data-i18n="form.hint">Se abrirá tu cliente de correo con el mensaje listo para enviar.</p>
+          <p class="form__estado" role="status" hidden></p>
+          <p class="form__hint" data-i18n="form.hint">Respondemos normalmente en menos de 24 horas.</p>
         </form>
       </div>
     </div>

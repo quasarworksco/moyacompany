@@ -336,6 +336,11 @@ async function verLlamada(id) {
       </div>
       <span class="pill pill--${(ESTADOS[l.estado] || ['', 'av'])[1]}">${(ESTADOS[l.estado] || [l.estado])[0]}</span>
     </header>
+    ${permisos.contactos ? `<div class="det__acciones det__acciones--fila">
+      ${l.contacto_id
+        ? '<button class="abtn abtn--ghost abtn--sm" type="button" id="verFicha">Ver su ficha</button>'
+        : (l.numero ? '<button class="abtn abtn--primary abtn--sm" type="button" id="crearDeLlamada">Crear contacto con este número</button>' : '')}
+    </div>` : ''}
     <div class="det__audio" id="detAudio">${l.grabacion_path ? 'Cargando grabación…' : '<p class="det__nada">Esta llamada no tiene grabación.</p>'}</div>
     <div class="det__ia">
       <div class="det__iahead">
@@ -354,8 +359,10 @@ async function verLlamada(id) {
         ia.datos.map((d) => `<div><dt>${escapar(d.campo)}</dt><dd>${escapar(d.valor)}</dd></div>`).join('') + '</dl>' : '')}
       ${bloque('Documentos pendientes', lista(ia.documentos_pendientes))}
       ${bloque('Próximos pasos', lista(ia.proximos_pasos))}
-      ${bloque('Tareas', ia.tareas?.length ? '<ul class="det__lista">' +
-        ia.tareas.map((t) => `<li>${escapar(t.titulo)} <span class="det__dias">${t.en_dias === 0 ? 'hoy' : 'en ' + t.en_dias + ' día(s)'}</span></li>`).join('') + '</ul>' : '')}
+      ${bloque('Tareas que detectó la IA', ia.tareas?.length ? '<ul class="det__lista det__lista--tareas">' +
+        ia.tareas.map((t, i) => `<li><span>${escapar(t.titulo)}
+          <span class="det__dias">${t.en_dias === 0 ? 'hoy' : 'en ' + t.en_dias + ' día(s)'}</span></span>
+          ${permisos.contactos ? `<button class="abtn abtn--ghost abtn--sm" type="button" data-tarea="${i}">Guardar</button>` : ''}</li>`).join('') + '</ul>' : '')}
       ${bloque('Transcripción', l.transcripcion ? `<details class="det__trans"><summary>Ver transcripción completa</summary><p>${escapar(l.transcripcion)}</p></details>` : '')}
     </div>`;
 
@@ -367,6 +374,52 @@ async function verLlamada(id) {
   }
   const btn = $('reprocesar');
   if (btn) btn.addEventListener('click', () => reprocesar(l.id, btn));
+
+  const ficha = $('verFicha');
+  if (ficha) ficha.addEventListener('click', () => { irA('contactos'); setTimeout(() => verContacto(l.contacto_id), 250); });
+
+  const crear = $('crearDeLlamada');
+  if (crear) crear.addEventListener('click', () => contactoDesdeLlamada(l, crear));
+
+  // Las tareas que saca la IA no sirven de nada si sólo se leen.
+  det.querySelectorAll('[data-tarea]').forEach((b) =>
+    b.addEventListener('click', () => guardarTareaIA(l, ia.tareas[Number(b.dataset.tarea)], b)));
+}
+
+/* Un número desconocido que llamó es un prospecto: la ficha se crea con lo
+   que la IA ya entendió de la conversación, no en blanco. */
+async function contactoDesdeLlamada(l, btn) {
+  btn.disabled = true; btn.textContent = 'Creando…';
+  const ia = l.ia || {};
+  const { data, error } = await sb.from('contactos').insert({
+    nombre: ia.nombre || l.numero,
+    empresa: ia.empresa || null,
+    telefono: l.numero,
+    origen: 'llamada',
+    estado: ia.tipo === 'cliente' ? 'cliente' : 'prospecto',
+    etiquetas: ia.servicio ? [ia.servicio] : [],
+    notas: ia.resumen || null
+  }).select('id').single();
+  btn.disabled = false; btn.textContent = 'Crear contacto con este número';
+  if (error) return aviso('<b>No se pudo crear el contacto.</b> ' + escapar(error.message), 'error');
+
+  await sb.from('llamadas').update({ contacto_id: data.id }).eq('id', l.id);
+  await cargarLlamadas();
+  irA('contactos');
+  setTimeout(() => verContacto(data.id), 250);
+}
+
+async function guardarTareaIA(l, tarea, btn) {
+  if (!tarea) return;
+  btn.disabled = true;
+  const dias = Number(tarea.en_dias);
+  const vence = Number.isFinite(dias)
+    ? new Date(Date.now() + dias * 864e5).toISOString().slice(0, 10) : null;
+  const { error } = await sb.from('tareas').insert({
+    titulo: tarea.titulo, vence, contacto_id: l.contacto_id || null, llamada_id: l.id
+  });
+  btn.textContent = error ? 'No se pudo' : 'Guardada';
+  if (error) { btn.disabled = false; aviso('<b>No se pudo guardar.</b> ' + escapar(error.message), 'error'); }
 }
 
 async function reprocesar(id, btn) {
@@ -382,6 +435,8 @@ async function reprocesar(id, btn) {
 
 /* ---------- 5. Marcador (Twilio Voice) ---------- */
 let device = null, conexion = null, lineaOk = false;
+/* Cuando se marca desde la ficha de un contacto, la llamada nace vinculada. */
+let paraLlamar = null;
 
 async function comprobarLinea() {
   const el = $('lineaEstado');
@@ -460,8 +515,10 @@ $('btnLlamar').addEventListener('click', async () => {
 
     const modo = $('modoGrabacion').value;
     const con_aviso = modo === 'aviso' ? true : modo === 'sin_aviso' ? false : null;
+    const mismo = paraLlamar && soloDigitos(paraLlamar.numero) === soloDigitos(numero);
     const { data: fila, error } = await sb.from('llamadas')
-      .insert({ direccion: 'saliente', canal: 'telefono', numero, estado: 'iniciando', con_aviso })
+      .insert({ direccion: 'saliente', canal: 'telefono', numero, estado: 'iniciando', con_aviso,
+                contacto_id: mismo ? paraLlamar.id : null })
       .select('id').single();
     if (error) { est.textContent = 'No se pudo registrar la llamada: ' + error.message; return; }
 
@@ -471,6 +528,7 @@ $('btnLlamar').addEventListener('click', async () => {
       device.on('disconnect', () => {
         est.textContent = 'Llamada terminada.';
         conexion = null;
+        paraLlamar = null;
         $('btnColgar').hidden = true;
         $('btnLlamar').hidden = false;
         setTimeout(cargarLlamadas, 4000);   // da tiempo a que Twilio avise el fin
@@ -496,32 +554,66 @@ $('btnColgar').addEventListener('click', () => {
 
 
 /* =========================================================
-   6. Contactos y prospectos
+   6. Contactos, prospectos y postulantes
    ========================================================= */
 const C_ESTADOS = {
   prospecto: ['Prospecto', 'av'], cliente: ['Cliente', 'ok'],
   pausado: ['Pausado', ''], perdido: ['Perdido', 'mal']
 };
+const P_ESTADOS = {
+  nuevo: ['Nuevo', 'av'], revisado: ['Revisado', ''], entrevista: ['Entrevista', 'ia'],
+  descartado: ['Descartado', 'mal'], contratado: ['Contratado', 'ok']
+};
 const C_ORIGENES = ['manual', 'formulario', 'llamada', 'referido', 'redes', 'otro'];
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
+const soloDigitos = (s) => String(s || '').replace(/\D/g, '');
 
-let contactos = [], contactoElegido = null;
+let contactos = [], postulantes = [], contactoElegido = null, postulanteElegido = null;
+let lado = 'cartera';
 
 async function cargarContactos() {
   const ul = $('listaContactos');
   ul.innerHTML = '<li class="lista__cargando">Cargando…</li>';
-  const { data, error } = await sb.from('contactos')
-    .select('*').order('updated_at', { ascending: false }).limit(500);
-  if (error) { ul.innerHTML = ''; return aviso('<b>No se pudieron cargar los contactos.</b> ' + escapar(error.message), 'error'); }
-  contactos = data || [];
+  const [c, p] = await Promise.all([
+    sb.from('contactos').select('*').order('updated_at', { ascending: false }).limit(500),
+    sb.from('postulantes').select('*').order('created_at', { ascending: false }).limit(300)
+  ]);
+  if (c.error) { ul.innerHTML = ''; return aviso('<b>No se pudieron cargar los contactos.</b> ' + escapar(c.error.message), 'error'); }
+  contactos = c.data || [];
+  postulantes = p.data || [];
   resumenContactos();
   pintarContactos();
-  if (contactoElegido && contactos.some((c) => c.id === contactoElegido)) verContacto(contactoElegido);
+  if (lado === 'cartera' && contactoElegido && contactos.some((x) => x.id === contactoElegido)) verContacto(contactoElegido);
+  if (lado === 'postulantes' && postulanteElegido && postulantes.some((x) => x.id === postulanteElegido)) verPostulante(postulanteElegido);
 }
 $('recargarContactos').addEventListener('click', cargarContactos);
 $('filtroContactos').addEventListener('change', pintarContactos);
 $('buscaContacto').addEventListener('input', pintarContactos);
-$('nuevoContacto').addEventListener('click', () => { contactoElegido = null; pintarContactos(); fichaContacto(null); });
+$('nuevoContacto').addEventListener('click', () => {
+  irALado('cartera');
+  contactoElegido = null; pintarContactos(); fichaContacto(null);
+});
+
+$('segContactos').addEventListener('click', (e) => {
+  const b = e.target.closest('.segmento');
+  if (b) irALado(b.dataset.lado);
+});
+function irALado(nuevo) {
+  lado = nuevo;
+  document.querySelectorAll('#segContactos .segmento')
+    .forEach((b) => b.classList.toggle('is-on', b.dataset.lado === lado));
+  $('tituloLista').textContent = lado === 'cartera' ? 'Cartera' : 'Postulaciones';
+  $('nuevoContacto').hidden = lado !== 'cartera';
+  $('exportarContactos').textContent = lado === 'cartera' ? 'Exportar CSV' : 'Exportar CSV';
+  const f = $('filtroContactos');
+  f.innerHTML = lado === 'cartera'
+    ? '<option value="">Todos</option>' + Object.entries(C_ESTADOS).map(([k, v]) => `<option value="${k}">${v[0]}s</option>`).join('')
+    : '<option value="">Todas</option>' + Object.entries(P_ESTADOS).map(([k, v]) => `<option value="${k}">${v[0]}s</option>`).join('');
+  $('buscaContacto').placeholder = lado === 'cartera'
+    ? 'Buscar nombre, empresa, teléfono…' : 'Buscar nombre, correo, área…';
+  pintarContactos();
+  if (lado === 'cartera') fichaContacto0(); else fichaPostulante0();
+}
 
 function resumenContactos() {
   const cuenta = (e) => contactos.filter((c) => c.estado === e).length;
@@ -532,12 +624,19 @@ function resumenContactos() {
   poner('prospecto', nf.format(cuenta('prospecto')));
   poner('cliente', nf.format(cuenta('cliente')));
   poner('valor', money.format(valor));
-  $('contactosResumen').textContent = contactos.length
-    ? `${contactos.length} ficha(s) · se actualiza al guardar`
-    : 'Todavía no hay contactos registrados.';
+  const nuevos = postulantes.filter((p) => p.estado === 'nuevo').length;
+  $('contactosResumen').textContent =
+    `${contactos.length} ficha(s) · ${postulantes.length} postulación(es)` +
+    (nuevos ? ` · ${nuevos} sin revisar` : '');
+  const seg = document.querySelector('#segContactos [data-lado="postulantes"]');
+  if (seg) seg.innerHTML = 'Postulantes' + (nuevos ? ` <span class="bolita">${nuevos}</span>` : '');
 }
 
 function pintarContactos() {
+  return lado === 'cartera' ? pintarCartera() : pintarPostulantes();
+}
+
+function pintarCartera() {
   const q = $('buscaContacto').value.trim().toLowerCase();
   const f = $('filtroContactos').value;
   const ul = $('listaContactos');
@@ -566,7 +665,35 @@ function pintarContactos() {
   ul.querySelectorAll('.fila').forEach((b) =>
     b.addEventListener('click', () => verContacto(b.dataset.id)));
 }
-const inicial = (s) => String(s).trim().charAt(0).toUpperCase() || '?';
+
+function pintarPostulantes() {
+  const q = $('buscaContacto').value.trim().toLowerCase();
+  const f = $('filtroContactos').value;
+  const ul = $('listaContactos');
+  const vis = postulantes.filter((p) => {
+    if (f && p.estado !== f) return false;
+    if (!q) return true;
+    return [p.nombre, p.email, p.telefono, p.area, p.ingles]
+      .some((v) => String(v || '').toLowerCase().includes(q));
+  });
+  if (!vis.length) {
+    ul.innerHTML = `<li class="lista__vacio">${postulantes.length ? 'Ninguna postulación coincide.' : 'Todavía no hay postulaciones. Llegan del formulario «¿Quieres formar parte de nuestro equipo?».'}</li>`;
+    return;
+  }
+  ul.innerHTML = vis.map((p) => {
+    const [txt, cl] = P_ESTADOS[p.estado] || [p.estado, ''];
+    return `<li><button class="fila ${postulanteElegido === p.id ? 'is-on' : ''}" type="button" data-id="${p.id}">
+      <span class="fila__ini" aria-hidden="true">${escapar(inicial(p.nombre))}</span>
+      <span class="fila__cuerpo">
+        <span class="fila__top"><b>${escapar(p.nombre)}</b>
+          <span class="pill ${cl ? 'pill--' + cl : ''}">${txt}</span></span>
+        <span class="fila__bajo">${escapar(p.area || 'Sin área')} · ${fechaCorta(p.created_at)}</span>
+      </span></button></li>`;
+  }).join('');
+  ul.querySelectorAll('.fila').forEach((b) =>
+    b.addEventListener('click', () => verPostulante(b.dataset.id)));
+}
+const inicial = (s) => String(s || '').trim().charAt(0).toUpperCase() || '?';
 
 function verContacto(id) {
   contactoElegido = id;
@@ -590,7 +717,11 @@ function fichaContacto(c) {
           <p class="det__sub">${nuevo ? 'Rellena lo que tengas; sólo el nombre es obligatorio.'
             : 'Dado de alta ' + fechaCorta(c.created_at)}</p>
         </div>
-        ${nuevo ? '' : `<span class="pill pill--${(C_ESTADOS[c.estado] || ['', ''])[1]}">${(C_ESTADOS[c.estado] || [c.estado])[0]}</span>`}
+        <div class="det__acciones">
+          ${!nuevo && c.telefono && permisos.llamadas
+            ? `<button class="abtn abtn--primary abtn--sm" type="button" id="cLlamar">Llamar</button>` : ''}
+          ${!nuevo ? `<span class="pill pill--${(C_ESTADOS[c.estado] || ['', ''])[1]}">${(C_ESTADOS[c.estado] || [c.estado])[0]}</span>` : ''}
+        </div>
       </header>
 
       <div class="ficha__rejilla">
@@ -625,13 +756,15 @@ function fichaContacto(c) {
                 : '<button class="abtn abtn--ghost" type="button" id="cBorrar">Eliminar</button>'}
       </div>
     </form>
-    ${nuevo ? '' : '<div class="ficha__llamadas" id="cLlamadas"></div>'}`;
+    ${nuevo ? '' : '<div class="ficha__extra" id="cExtra"></div>'}`;
 
   $('formContacto').addEventListener('submit', (e) => { e.preventDefault(); guardarContacto(nuevo ? null : c.id); });
   if (nuevo) $('cCancelar').addEventListener('click', () => { contactoElegido = null; pintarContactos(); fichaContacto0(); });
   else {
     $('cBorrar').addEventListener('click', () => borrarContacto(c.id, c.nombre));
-    llamadasDelContacto(c.id);
+    const l = $('cLlamar');
+    if (l) l.addEventListener('click', () => llamarA(c));
+    detalleContacto(c.id);
   }
 }
 function fichaContacto0() {
@@ -651,10 +784,30 @@ function leerContacto() {
   };
 }
 
+/* Avisa, no bloquea: dos fichas con el mismo teléfono a veces son dos
+   personas de la misma empresa, y eso lo sabe quien está mirando. */
+function duplicados(fila, id) {
+  const dig = soloDigitos(fila.telefono);
+  const mail = (fila.email || '').toLowerCase();
+  return contactos.filter((c) => c.id !== id &&
+    ((dig && c.tel_digitos === dig) || (mail && (c.email || '').toLowerCase() === mail)));
+}
+
 async function guardarContacto(id) {
   const msg = $('cEstadoMsg'), btn = $('cGuardar');
   const fila = leerContacto();
   if (!fila.nombre) { msg.textContent = 'El nombre hace falta.'; $('cNombre').focus(); return; }
+
+  const iguales = duplicados(fila, id);
+  if (iguales.length && !btn.dataset.confirmado) {
+    btn.dataset.confirmado = '1';
+    msg.innerHTML = `<b>Ojo:</b> ya hay una ficha con ese teléfono o correo — ` +
+      iguales.map((c) => escapar(c.nombre || 'sin nombre')).join(', ') +
+      `. Toca «${btn.textContent}» otra vez si aun así quieres guardarla.`;
+    return;
+  }
+  delete btn.dataset.confirmado;
+
   btn.disabled = true; msg.textContent = 'Guardando…';
   const q = id
     ? sb.from('contactos').update(fila).eq('id', id).select('id').single()
@@ -668,7 +821,7 @@ async function guardarContacto(id) {
 }
 
 async function borrarContacto(id, nombre) {
-  if (!confirm(`¿Eliminar a ${nombre || 'este contacto'}? No se puede deshacer.`)) return;
+  if (!confirm(`¿Eliminar a ${nombre || 'este contacto'}? Se van también sus mensajes y tareas. No se puede deshacer.`)) return;
   const { error } = await sb.from('contactos').delete().eq('id', id);
   if (error) return aviso('<b>No se pudo eliminar.</b> ' + escapar(error.message), 'error');
   contactoElegido = null;
@@ -676,24 +829,213 @@ async function borrarContacto(id, nombre) {
   await cargarContactos();
 }
 
-/* Las llamadas del contacto son de sólo lectura aquí: el detalle completo
-   (grabación y resumen) vive en su propia pestaña. */
-async function llamadasDelContacto(id) {
-  const host = $('cLlamadas');
-  if (!host || !permisos.llamadas) return;
-  const { data, error } = await sb.from('llamadas')
-    .select('id,created_at,direccion,estado,duracion_seg')
-    .eq('contacto_id', id).order('created_at', { ascending: false }).limit(8);
-  if (error || !data?.length) { host.innerHTML = ''; return; }
-  host.innerHTML = `<h3 class="ficha__h3">Llamadas con este contacto</h3>
-    <ul class="ficha__llam">${data.map((l) => {
-      const [txt, cl] = ESTADOS[l.estado] || [l.estado, 'av'];
-      return `<li><span>${l.direccion === 'entrante' ? 'Entrante' : 'Saliente'}</span>
-        <span>${fechaCorta(l.created_at)}</span>
-        <span>${duracion(l.duracion_seg)}</span>
-        <span class="pill pill--${cl}">${txt}</span></li>`;
-    }).join('')}</ul>`;
+/* Marcar desde la ficha: lleva a llamadas con el número puesto y deja
+   anotado a quién se llama, para que la llamada nazca ya vinculada. */
+function llamarA(c) {
+  paraLlamar = { id: c.id, numero: c.telefono };
+  irA('llamadas');
+  setTimeout(() => {
+    $('numeroLlamar').value = c.telefono || '';
+    $('marcadorEstado').textContent = 'Listo para llamar a ' + (c.nombre || c.telefono) + '.';
+    $('numeroLlamar').focus();
+  }, 200);
 }
+
+/* ---------- lo que cuelga de la ficha: tareas y línea de tiempo ---------- */
+async function detalleContacto(id) {
+  const host = $('cExtra');
+  if (!host) return;
+  host.innerHTML = '<p class="ficha__cargando">Cargando historial…</p>';
+  const [t, m, l] = await Promise.all([
+    sb.from('tareas').select('*').eq('contacto_id', id).order('hecha').order('vence', { nullsFirst: false }),
+    sb.from('mensajes').select('*').eq('contacto_id', id).order('created_at', { ascending: false }).limit(20),
+    permisos.llamadas
+      ? sb.from('llamadas').select('id,created_at,direccion,estado,duracion_seg').eq('contacto_id', id).order('created_at', { ascending: false }).limit(20)
+      : { data: [] }
+  ]);
+  const tareas = t.data || [], mensajes = m.data || [], llams = l.data || [];
+
+  const linea = [
+    ...mensajes.map((x) => ({ cuando: x.created_at, tipo: 'mensaje', dato: x })),
+    ...llams.map((x) => ({ cuando: x.created_at, tipo: 'llamada', dato: x }))
+  ].sort((a, b) => new Date(b.cuando) - new Date(a.cuando));
+
+  host.innerHTML = `
+    <section class="bloque">
+      <h3 class="ficha__h3">Seguimientos</h3>
+      <ul class="tareas" id="cTareas">${tareas.length ? tareas.map(filaTarea).join('')
+        : '<li class="ranks__empty">Sin seguimientos todavía.</li>'}</ul>
+      <form class="tarea__alta" id="cNuevaTarea">
+        <input id="cTareaTxt" maxlength="200" placeholder="Llamar a… / Enviar la propuesta…" />
+        <input id="cTareaFecha" type="date" aria-label="Para cuándo" />
+        <button class="abtn abtn--primary abtn--sm" type="submit">Agregar</button>
+      </form>
+    </section>
+
+    <section class="bloque">
+      <h3 class="ficha__h3">Actividad</h3>
+      ${linea.length ? `<ol class="tiempo">${linea.map((x) => x.tipo === 'mensaje'
+          ? `<li class="tiempo__it tiempo__it--msg">
+               <span class="tiempo__cuando">${fechaCorta(x.cuando)}</span>
+               <div><b>${escapar(x.dato.asunto || 'Mensaje desde el sitio')}</b>
+                 <p>${escapar(x.dato.texto)}</p></div></li>`
+          : `<li class="tiempo__it tiempo__it--tel">
+               <span class="tiempo__cuando">${fechaCorta(x.cuando)}</span>
+               <div><b>Llamada ${x.dato.direccion === 'entrante' ? 'entrante' : 'saliente'}</b>
+                 <p>${(ESTADOS[x.dato.estado] || [x.dato.estado])[0]} · ${duracion(x.dato.duracion_seg)}</p></div></li>`
+        ).join('')}</ol>`
+        : '<p class="ranks__empty">Todavía no hay mensajes ni llamadas con este contacto.</p>'}
+    </section>`;
+
+  host.querySelectorAll('.tarea__check').forEach((b) =>
+    b.addEventListener('change', () => marcarTarea(b.dataset.id, b.checked, id)));
+  host.querySelectorAll('.tarea__x').forEach((b) =>
+    b.addEventListener('click', () => borrarTarea(b.dataset.id, id)));
+  $('cNuevaTarea').addEventListener('submit', (e) => { e.preventDefault(); nuevaTarea(id); });
+
+  // Los mensajes dejan de estar "nuevos" cuando alguien abre la ficha.
+  const sinLeer = mensajes.filter((x) => !x.leido).map((x) => x.id);
+  if (sinLeer.length) await sb.from('mensajes').update({ leido: true }).in('id', sinLeer);
+}
+
+const vencida = (t) => !t.hecha && t.vence && t.vence < hoyISO();
+function filaTarea(t) {
+  return `<li class="tarea ${t.hecha ? 'is-hecha' : ''} ${vencida(t) ? 'is-tarde' : ''}">
+    <label><input class="tarea__check" type="checkbox" data-id="${t.id}" ${t.hecha ? 'checked' : ''} />
+      <span>${escapar(t.titulo)}</span></label>
+    <span class="tarea__fecha">${t.vence ? diaCorto(t.vence) : ''}</span>
+    <button class="tarea__x" type="button" data-id="${t.id}" aria-label="Quitar">×</button></li>`;
+}
+
+async function nuevaTarea(contactoId) {
+  const txt = $('cTareaTxt').value.trim();
+  if (!txt) return;
+  const { error } = await sb.from('tareas')
+    .insert({ titulo: txt, vence: $('cTareaFecha').value || null, contacto_id: contactoId });
+  if (error) return aviso('<b>No se pudo crear el seguimiento.</b> ' + escapar(error.message), 'error');
+  $('cTareaTxt').value = ''; $('cTareaFecha').value = '';
+  detalleContacto(contactoId);
+}
+async function marcarTarea(id, hecha, contactoId) {
+  await sb.from('tareas').update({ hecha, hecha_at: hecha ? new Date().toISOString() : null }).eq('id', id);
+  if (contactoId) detalleContacto(contactoId);
+}
+async function borrarTarea(id, contactoId) {
+  await sb.from('tareas').delete().eq('id', id);
+  if (contactoId) detalleContacto(contactoId);
+}
+
+/* ---------- postulantes ---------- */
+function verPostulante(id) {
+  postulanteElegido = id;
+  pintarContactos();
+  fichaPostulante(postulantes.find((p) => p.id === id) || null);
+}
+function fichaPostulante0() {
+  $('fichaContacto').innerHTML = '<p class="detalle__vacio">Elige una postulación para verla.</p>';
+}
+function fichaPostulante(p) {
+  if (!p) return fichaPostulante0();
+  const dato = (t, v) => v ? `<div><dt>${t}</dt><dd>${escapar(v)}</dd></div>` : '';
+  $('fichaContacto').innerHTML = `
+    <header class="det__head">
+      <div>
+        <h2 class="det__titulo">${escapar(p.nombre)}</h2>
+        <p class="det__sub">Postuló el ${fechaCorta(p.created_at)}</p>
+      </div>
+      <span class="pill pill--${(P_ESTADOS[p.estado] || ['', ''])[1]}">${(P_ESTADOS[p.estado] || [p.estado])[0]}</span>
+    </header>
+
+    <div class="estados" id="pEstados" role="group" aria-label="Estado de la postulación">
+      ${Object.entries(P_ESTADOS).map(([k, v]) =>
+        `<button class="estado ${k === p.estado ? 'is-on' : ''}" type="button" data-estado="${k}">${v[0]}</button>`).join('')}
+    </div>
+
+    <dl class="det__datos">
+      ${dato('Correo', p.email)}${dato('Teléfono', p.telefono)}${dato('Área', p.area)}
+      ${dato('Experiencia', p.experiencia)}${dato('Inglés', p.ingles)}
+    </dl>
+
+    ${p.cv ? `<p class="det__cv"><a href="${escapar(p.cv)}" target="_blank" rel="noopener noreferrer">Abrir el CV ↗</a></p>` : ''}
+    ${p.mensaje ? `<div class="det__bloque"><h3>Lo que escribió</h3><p class="copy">${escapar(p.mensaje)}</p></div>` : ''}
+
+    <label class="afield"><span>Notas internas</span>
+      <textarea id="pNotas" rows="3" placeholder="Qué te pareció, cuándo la entrevistaste…">${escapar(p.notas || '')}</textarea></label>
+    <p class="ficha__estado" id="pEstadoMsg"></p>
+    <div class="ficha__botones">
+      <button class="abtn abtn--primary" type="button" id="pGuardar">Guardar notas</button>
+      ${p.email ? `<a class="abtn abtn--ghost" href="mailto:${escapar(p.email)}">Escribirle</a>` : ''}
+      <button class="abtn abtn--ghost" type="button" id="pBorrar">Eliminar</button>
+    </div>`;
+
+  $('pEstados').addEventListener('click', async (e) => {
+    const b = e.target.closest('.estado');
+    if (!b || b.dataset.estado === p.estado) return;
+    const { error } = await sb.from('postulantes').update({ estado: b.dataset.estado }).eq('id', p.id);
+    if (error) return aviso('<b>No se pudo cambiar el estado.</b> ' + escapar(error.message), 'error');
+    await cargarContactos();
+  });
+  $('pGuardar').addEventListener('click', async () => {
+    const msg = $('pEstadoMsg');
+    msg.textContent = 'Guardando…';
+    const { error } = await sb.from('postulantes').update({ notas: $('pNotas').value.trim() || null }).eq('id', p.id);
+    msg.textContent = error ? 'No se pudo guardar: ' + error.message : 'Guardado.';
+    if (!error) await cargarContactos();
+  });
+  $('pBorrar').addEventListener('click', async () => {
+    if (!confirm(`¿Eliminar la postulación de ${p.nombre}? No se puede deshacer.`)) return;
+    const { error } = await sb.from('postulantes').delete().eq('id', p.id);
+    if (error) return aviso('<b>No se pudo eliminar.</b> ' + escapar(error.message), 'error');
+    postulanteElegido = null; fichaPostulante0(); await cargarContactos();
+  });
+}
+
+/* ---------- exportar ---------- */
+function csv(filas, columnas) {
+  const limpia = (v) => {
+    let t = String(Array.isArray(v) ? v.join(' | ') : (v ?? ''));
+    // Una celda que empieza por = + - @ la interpreta Excel como fórmula.
+    // Los teléfonos empiezan por '+' y son el caso normal, no un ataque: a
+    // esos les basta un espacio delante, que Excel no muestra; al resto se
+    // le pone un apóstrofo, que es la defensa de siempre.
+    if (/^[=+\-@\t\r]/.test(t)) t = (/^\+?[\d\s().\-]+$/.test(t) ? ' ' : "'") + t;
+    return '"' + t.replace(/"/g, '""') + '"';
+  };
+  return '﻿' + [columnas.map((c) => csvCab(c)).join(',')]
+    .concat(filas.map((f) => columnas.map((c) => limpia(f[c])).join(',')))
+    .join('\r\n');
+}
+const CAB = {
+  nombre: 'Nombre', empresa: 'Empresa', email: 'Correo', telefono: 'Teléfono',
+  telefono2: 'Teléfono alterno', region: 'Ciudad o zona', estado: 'Estado',
+  origen: 'Cómo llegó', valor_mensual: 'Ingreso mensual', etiquetas: 'Etiquetas',
+  notas: 'Notas', created_at: 'Alta', area: 'Área', experiencia: 'Experiencia',
+  ingles: 'Inglés', cv: 'CV', mensaje: 'Mensaje'
+};
+const csvCab = (c) => '"' + (CAB[c] || c) + '"';
+
+function bajarArchivo(nombre, texto, tipo) {
+  const url = URL.createObjectURL(new Blob([texto], { type: tipo }));
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+$('exportarContactos').addEventListener('click', () => {
+  const hoy = hoyISO();
+  if (lado === 'cartera') {
+    bajarArchivo(`contactos-moya-${hoy}.csv`,
+      csv(contactos, ['nombre', 'empresa', 'email', 'telefono', 'telefono2', 'region',
+                      'estado', 'origen', 'valor_mensual', 'etiquetas', 'notas', 'created_at']),
+      'text/csv;charset=utf-8');
+  } else {
+    bajarArchivo(`postulantes-moya-${hoy}.csv`,
+      csv(postulantes, ['nombre', 'email', 'telefono', 'area', 'experiencia', 'ingles',
+                        'cv', 'estado', 'mensaje', 'notas', 'created_at']),
+      'text/csv;charset=utf-8');
+  }
+});
 
 /* =========================================================
    7. Contenido digital
@@ -709,6 +1051,8 @@ const D_TIPOS = { post: 'Post', historia: 'Historia', reel: 'Reel', flyer: 'Flye
 const MAX_ARCHIVO = 25 * 1024 * 1024;
 
 let contenidos = [], contenidoElegido = null;
+let modoContenido = 'galeria';
+let mesVista = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
 const firmas = new Map();   // path -> url firmada
 
 async function firmar(paths) {
@@ -727,12 +1071,35 @@ async function cargarContenido() {
     .order('created_at', { ascending: false }).limit(200);
   if (error) { host.innerHTML = ''; return aviso('<b>No se pudo cargar el contenido.</b> ' + escapar(error.message), 'error'); }
   contenidos = data || [];
-  await pintarGaleria();
+  await pintarContenido();
   if (contenidoElegido && contenidos.some((d) => d.id === contenidoElegido)) verContenido(contenidoElegido);
 }
 $('recargarContenido').addEventListener('click', cargarContenido);
-$('filtroContenido').addEventListener('change', pintarGaleria);
-$('nuevoContenido').addEventListener('click', () => { contenidoElegido = null; pintarGaleria(); formContenido(); });
+$('filtroContenido').addEventListener('change', pintarContenido);
+$('nuevoContenido').addEventListener('click', () => { contenidoElegido = null; pintarContenido(); formContenido(); });
+
+$('segContenido').addEventListener('click', (e) => {
+  const b = e.target.closest('.segmento');
+  if (!b || b.dataset.modo === modoContenido) return;
+  modoContenido = b.dataset.modo;
+  document.querySelectorAll('#segContenido .segmento')
+    .forEach((x) => x.classList.toggle('is-on', x.dataset.modo === modoContenido));
+  pintarContenido();
+});
+
+async function pintarContenido() {
+  $('galeria').hidden = modoContenido !== 'galeria';
+  $('calendario').hidden = modoContenido !== 'calendario';
+  resumenContenido();
+  return modoContenido === 'galeria' ? pintarGaleria() : pintarCalendario();
+}
+
+function resumenContenido() {
+  const porEstado = (e) => contenidos.filter((d) => d.estado === e).length;
+  $('contenidoResumen').textContent = contenidos.length
+    ? `${contenidos.length} pieza(s) · ${porEstado('por_aprobar')} por aprobar · ${porEstado('aprobado')} aprobadas`
+    : 'Todavía no hay diseños cargados.';
+}
 
 const esImagen = (a) => /^image\//.test(a?.mime || '');
 
@@ -740,11 +1107,6 @@ async function pintarGaleria() {
   const f = $('filtroContenido').value;
   const host = $('galeria');
   const vis = contenidos.filter((d) => !f || d.estado === f);
-  const porEstado = (e) => contenidos.filter((d) => d.estado === e).length;
-  $('contenidoResumen').textContent = contenidos.length
-    ? `${contenidos.length} pieza(s) · ${porEstado('por_aprobar')} por aprobar · ${porEstado('aprobado')} aprobadas`
-    : 'Todavía no hay diseños cargados.';
-
   if (!vis.length) {
     host.innerHTML = `<p class="galeria__aviso">${contenidos.length
       ? 'Ninguna pieza en ese estado.' : 'Todavía no hay diseños. Toca «Subir diseño».'}</p>`;
@@ -777,6 +1139,104 @@ async function pintarGaleria() {
 }
 const diaCorto = (d) => new Date(d + 'T12:00:00')
   .toLocaleDateString('es-MX', { day: '2-digit', month: 'short' });
+
+/* ---------- calendario del mes ----------
+   Para programar se piensa en mes, no en cuadrícula. Las piezas se
+   arrastran de un día a otro y eso cambia su fecha de publicación; es
+   la misma vista con la que después se lee el plan del Autopilot. */
+const MESES = ['enero','febrero','marzo','abril','mayo','junio','julio',
+               'agosto','septiembre','octubre','noviembre','diciembre'];
+const DIAS = ['lun','mar','mié','jue','vie','sáb','dom'];
+const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+
+async function pintarCalendario() {
+  const host = $('calendario');
+  const f = $('filtroContenido').value;
+  const piezas = contenidos.filter((d) => !f || d.estado === f);
+
+  const y = mesVista.getFullYear(), m = mesVista.getMonth();
+  const primero = new Date(y, m, 1);
+  // La semana empieza el lunes: getDay() da 0 para domingo.
+  const desplaza = (primero.getDay() + 6) % 7;
+  const largo = new Date(y, m + 1, 0).getDate();
+  const hoy = hoyISO();
+
+  const porDia = new Map();
+  piezas.forEach((d) => {
+    if (!d.fecha_publicacion) return;
+    if (!porDia.has(d.fecha_publicacion)) porDia.set(d.fecha_publicacion, []);
+    porDia.get(d.fecha_publicacion).push(d);
+  });
+  const sinFecha = piezas.filter((d) => !d.fecha_publicacion);
+
+  const celdas = [];
+  for (let i = 0; i < desplaza; i++) celdas.push('<div class="dia dia--fuera"></div>');
+  for (let n = 1; n <= largo; n++) {
+    const fecha = iso(new Date(y, m, n));
+    const dentro = porDia.get(fecha) || [];
+    celdas.push(`<div class="dia ${fecha === hoy ? 'is-hoy' : ''}" data-fecha="${fecha}">
+      <span class="dia__n">${n}</span>
+      ${dentro.map((d) => chip(d)).join('')}</div>`);
+  }
+
+  host.innerHTML = `
+    <header class="cal__head">
+      <div class="cal__nav">
+        <button class="abtn abtn--ghost abtn--sm" type="button" data-mes="-1" aria-label="Mes anterior">←</button>
+        <h2 class="panel__title">${MESES[m]} ${y}</h2>
+        <button class="abtn abtn--ghost abtn--sm" type="button" data-mes="1" aria-label="Mes siguiente">→</button>
+      </div>
+      <button class="abtn abtn--ghost abtn--sm" type="button" data-mes="0">Hoy</button>
+    </header>
+    <div class="cal__dias">${DIAS.map((d) => `<span>${d}</span>`).join('')}</div>
+    <div class="cal__rejilla" id="calRejilla">${celdas.join('')}</div>
+    <div class="cal__pendientes" data-fecha="">
+      <h3 class="ficha__h3">Sin fecha</h3>
+      ${sinFecha.length ? sinFecha.map((d) => chip(d)).join('')
+        : '<p class="ranks__empty">Todo lo visible tiene fecha.</p>'}
+    </div>`;
+
+  host.querySelectorAll('[data-mes]').forEach((b) => b.addEventListener('click', () => {
+    const paso = Number(b.dataset.mes);
+    mesVista = paso === 0 ? new Date(new Date().getFullYear(), new Date().getMonth(), 1)
+                          : new Date(y, m + paso, 1);
+    pintarCalendario();
+  }));
+  host.querySelectorAll('.chip-pieza').forEach((el) => {
+    el.addEventListener('click', () => verContenido(el.dataset.id));
+    el.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', el.dataset.id);
+      e.dataTransfer.effectAllowed = 'move';
+    });
+  });
+  host.querySelectorAll('.dia:not(.dia--fuera), .cal__pendientes').forEach((celda) => {
+    celda.addEventListener('dragover', (e) => { e.preventDefault(); celda.classList.add('is-destino'); });
+    celda.addEventListener('dragleave', () => celda.classList.remove('is-destino'));
+    celda.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      celda.classList.remove('is-destino');
+      const id = e.dataTransfer.getData('text/plain');
+      await moverPieza(id, celda.dataset.fecha || null);
+    });
+  });
+}
+
+function chip(d) {
+  const [txt, cl] = D_ESTADOS[d.estado] || [d.estado, ''];
+  return `<button class="chip-pieza chip-pieza--${cl} ${contenidoElegido === d.id ? 'is-on' : ''}"
+    type="button" draggable="true" data-id="${d.id}" title="${escapar(d.titulo)} · ${txt}">
+    <span class="chip-pieza__red">${(D_REDES[d.red] || d.red).slice(0, 2).toUpperCase()}</span>
+    <span class="chip-pieza__t">${escapar(d.titulo)}</span></button>`;
+}
+
+async function moverPieza(id, fecha) {
+  const d = contenidos.find((x) => x.id === id);
+  if (!d || d.fecha_publicacion === fecha) return;
+  const { error } = await sb.from('contenido').update({ fecha_publicacion: fecha }).eq('id', id);
+  if (error) return aviso('<b>No se pudo mover la pieza.</b> ' + escapar(error.message), 'error');
+  d.fecha_publicacion = fecha;
+  pintarCalendario();
+}
 
 /* ---------- alta y edición ---------- */
 function formContenido(d) {
@@ -817,7 +1277,7 @@ function formContenido(d) {
     </form>`;
   $('formContenido').addEventListener('submit', (e) => { e.preventDefault(); guardarContenido(nuevo ? null : d); });
   $('dCancelar').addEventListener('click', () => {
-    if (nuevo) { contenidoElegido = null; pintarGaleria(); fichaContenido0(); }
+    if (nuevo) { contenidoElegido = null; pintarContenido(); fichaContenido0(); }
     else verContenido(d.id);
   });
 }
@@ -880,7 +1340,7 @@ async function guardarContenido(original) {
 /* ---------- detalle ---------- */
 async function verContenido(id) {
   contenidoElegido = id;
-  await pintarGaleria();
+  await pintarContenido();
   const d = contenidos.find((x) => x.id === id);
   if (!d) return;
   const [txt, cl] = D_ESTADOS[d.estado] || [d.estado, ''];
@@ -1028,7 +1488,8 @@ async function cargarResumen() {
 
   const hace7 = diasAtras(7);
   const nada = { data: null, count: null };
-  const [stats, llamadas7, ultimasLlam, prosp7, ultimosCont, porAprobar, agenda] = await Promise.all([
+  const [stats, llamadas7, ultimasLlam, prosp7, ultimosCont, porAprobar, agenda,
+         pendientes, sinLeer, postNuevos] = await Promise.all([
     permisos.metricas  ? sb.rpc('moya_stats') : nada,
     permisos.llamadas  ? sb.from('llamadas').select('id', { count: 'exact', head: true }).gte('created_at', hace7) : nada,
     permisos.llamadas  ? sb.from('llamadas').select('id,created_at,direccion,estado,numero,duracion_seg,ia_estado,contactos(nombre)')
@@ -1038,7 +1499,12 @@ async function cargarResumen() {
                            .order('created_at', { ascending: false }).limit(5) : nada,
     permisos.contenido ? sb.from('contenido').select('id', { count: 'exact', head: true }).eq('estado', 'por_aprobar') : nada,
     permisos.contenido ? sb.from('contenido').select('id,titulo,red,tipo,estado,fecha_publicacion')
-                           .gte('fecha_publicacion', hoyISO()).order('fecha_publicacion', { ascending: true }).limit(5) : nada
+                           .gte('fecha_publicacion', hoyISO()).order('fecha_publicacion', { ascending: true }).limit(5) : nada,
+    permisos.contactos ? sb.from('tareas').select('*, contactos(nombre)').eq('hecha', false)
+                           .or(`vence.lte.${hoyISO()},vence.is.null`)
+                           .order('vence', { nullsFirst: false }).limit(8) : nada,
+    permisos.contactos ? sb.from('mensajes').select('id', { count: 'exact', head: true }).eq('leido', false) : nada,
+    permisos.contactos ? sb.from('postulantes').select('id', { count: 'exact', head: true }).eq('estado', 'nuevo') : nada
   ]);
 
   /* ---- indicadores ---- */
@@ -1047,6 +1513,8 @@ async function cargarResumen() {
   if (permisos.metricas) tarjetas.push(['Visitas hoy', nf.format(t.hoy || 0), 'Del sitio público']);
   if (permisos.llamadas) tarjetas.push(['Llamadas · 7 días', nf.format(llamadas7.count || 0), 'Entrantes y salientes']);
   if (permisos.contactos) tarjetas.push(['Contactos nuevos · 7 días', nf.format(prosp7.count || 0), 'Altas en la cartera']);
+  if (permisos.contactos) tarjetas.push(['Mensajes sin leer', nf.format(sinLeer.count || 0),
+    (postNuevos.count ? `y ${postNuevos.count} postulación(es) sin revisar` : 'Del formulario del sitio')]);
   if (permisos.contenido) tarjetas.push(['Diseños por aprobar', nf.format(porAprobar.count || 0), 'Esperan tu visto bueno']);
   $('resumenKpis').innerHTML = tarjetas.map(([l, v, p]) =>
     `<article class="kpi"><p class="kpi__label">${l}</p><p class="kpi__value">${v}</p>
@@ -1054,6 +1522,16 @@ async function cargarResumen() {
 
   /* ---- bloques ---- */
   const bloques = [];
+
+  if (permisos.contactos) {
+    const filas = pendientes.data || [];
+    bloques.push(caja('Para hoy', 'contactos', filas.length
+      ? filas.map((t) => linea(escapar(t.titulo),
+          (t.contactos?.nombre ? escapar(t.contactos.nombre) + ' · ' : '') +
+          (t.vence ? (t.vence < hoyISO() ? 'venció el ' : 'para el ') + diaCorto(t.vence) : 'sin fecha'),
+          t.vence && t.vence < hoyISO() ? '<span class="pill pill--mal">Atrasada</span>' : '')).join('')
+      : vacio('Nada pendiente. Los seguimientos se crean desde la ficha de cada contacto.')));
+  }
 
   if (permisos.llamadas) {
     const filas = ultimasLlam.data || [];

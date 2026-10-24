@@ -672,3 +672,14 @@ svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.7;
   .reveal{opacity:1;transform:none}
   .fab{transform:none;opacity:1}
 }
+
+/* Campo trampa: invisible para las personas, irresistible para los robots.
+   No se usa display:none porque algunos robots lo detectan. */
+.trampa{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+
+.form__estado{margin:.65rem 0 0;padding:.7rem 1rem;border-radius:12px;
+  font-size:.88rem;line-height:1.5;
+  color:#14612f;background:rgba(21,128,61,.10);border:1px solid rgba(21,128,61,.25)}
+.form__estado.is-mal{color:#7a1d20;background:rgba(180,37,44,.09);border-color:rgba(180,37,44,.25)}
+.on-dark .form__estado{color:#b9f0cd;background:rgba(21,128,61,.22);border-color:rgba(185,240,205,.3)}
+.on-dark .form__estado.is-mal{color:#ffc9cb;background:rgba(180,37,44,.26);border-color:rgba(255,201,203,.3)}
