@@ -51,7 +51,7 @@ const PIEZAS = [
               'People. Processes. Technology.'],
       cta: "Let's talk" },
     cuerpo: (c) => `<div class="cuerpo retrato">
-      <div class="retrato__foto"><img src="/assets/img/veronica.jpg" alt="Veronica Moya" /></div>
+      <div class="retrato__foto"><img src="/assets/img/veronica-retrato.jpg" alt="Veronica Moya" /></div>
       <div class="retrato__txt">
         <p class="retrato__rol">${c.rol}</p>
         <p class="retrato__nom">${c.nom}</p>
