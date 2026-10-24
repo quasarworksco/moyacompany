@@ -408,3 +408,13 @@ button,input{font:inherit;color:inherit}
 .chispa svg{display:block;width:100%;height:auto}
 .chispa rect{fill:var(--blue-400)}
 .chispa__pie{margin:.7rem 0 0;font-size:.8rem;color:var(--ink-soft)}
+
+/* ---------- redes / autopilot ---------- */
+.pendiente{display:grid;gap:1rem}
+.pendiente p{margin:0;font-size:.92rem;line-height:1.65;color:var(--ink-dim)}
+.pendiente__pasos{margin:0;padding-left:1.2rem;display:grid;gap:.5rem;
+  font-size:.9rem;line-height:1.6;color:var(--ink-dim)}
+.pendiente code{padding:.1em .4em;border-radius:6px;font-size:.86em;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  color:var(--blue);background:var(--blue-100)}
+.pendiente__pie{font-size:.86rem !important;color:var(--ink-soft) !important}

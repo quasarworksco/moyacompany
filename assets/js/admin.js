@@ -16,7 +16,7 @@ const nf = new Intl.NumberFormat('es-MX');
 /* Los módulos son los que la base conoce en puede(); 'resumen' no es un
    módulo: es la portada, y enseña sólo lo que cada módulo permita. */
 const MODULOS = ['metricas', 'llamadas', 'contactos', 'contenido'];
-const VISTAS = ['resumen', ...MODULOS];
+const VISTAS = ['resumen', ...MODULOS, 'redes'];
 const permisos = { metricas: false, llamadas: false, contactos: false, contenido: false };
 let sesion = null;
 
@@ -56,6 +56,7 @@ async function aplicarSesion(s) {
   const respuestas = await Promise.all(MODULOS.map((m) => sb.rpc('puede', { modulo: m })));
   MODULOS.forEach((m, i) => { permisos[m] = respuestas[i].data === true; });
   permisos.resumen = MODULOS.some((m) => permisos[m]);
+  permisos.redes = permisos.contenido;   // las redes cuelgan del módulo de contenido
 
   if (!permisos.resumen) {
     await sb.auth.signOut();
@@ -119,6 +120,7 @@ function irA(vista) {
   if (vista === 'llamadas')  { cargarLlamadas(); comprobarLinea(); }
   if (vista === 'contactos') cargarContactos();
   if (vista === 'contenido') cargarContenido();
+  if (vista === 'redes')     cargarRedes();
 }
 $('tabs').addEventListener('click', (e) => {
   const t = e.target.closest('.tab');
@@ -1127,6 +1129,60 @@ function chispa(serie) {
       return `<rect x="${x.toFixed(1)}" y="${(H - h).toFixed(1)}" width="${bw.toFixed(1)}"
         height="${h.toFixed(1)}" rx="${Math.min(3, bw / 2)}"/>`;
     }).join('') + '</svg>';
+}
+
+/* =========================================================
+   9. Redes — Social Media Autopilot de DGP
+   El widget oficial se monta con un par cliente/clave que
+   emite DGP. No vive en el repositorio: se guarda en
+   integraciones y sólo lo lee quien entra al panel.
+   ========================================================= */
+const AUTOPILOT_JS = 'https://adv.dgp-link.com/autopilot.js';
+let redesMontado = false;
+
+async function cargarRedes() {
+  if (redesMontado) return;
+  const host = $('autopilot');
+  host.innerHTML = '<div class="panel"><p class="detalle__vacio">Cargando…</p></div>';
+
+  const { data, error } = await sb.rpc('autopilot_enlace');
+  const cliente = data?.autopilot_cliente, clave = data?.autopilot_clave;
+
+  if (error || !cliente || !clave) {
+    host.innerHTML = `<section class="panel pendiente">
+      <h2 class="panel__title">Todavía no está activado</h2>
+      <p>El Social Media Autopilot lo enciende DGP Global Group. Cuando el plan esté
+         contratado, DGP entrega dos datos y la sección aparece sola aquí, sin tocar el sitio.</p>
+      <ol class="pendiente__pasos">
+        <li>DGP crea la cuenta de Autopilot y conecta la página de Facebook y el Instagram.</li>
+        <li>Se guardan <code>autopilot_cliente</code> y <code>autopilot_clave</code>
+            en la tabla <code>integraciones</code> de Supabase.</li>
+        <li>Al volver a entrar, aquí se ve el calendario, lo publicado y el botón de pausa.</li>
+      </ol>
+      <p class="pendiente__pie">Mientras tanto, los diseños se cargan en
+         <b>Contenido</b> y desde ahí pasan al plan.</p>
+    </section>`;
+    return;
+  }
+
+  const caja = document.createElement('div');
+  caja.id = 'dgp-autopilot';
+  caja.dataset.cliente = cliente;
+  caja.dataset.clave = clave;
+  caja.dataset.lang = 'es';
+  host.innerHTML = '';
+  host.appendChild(caja);
+
+  const s = document.createElement('script');
+  s.src = AUTOPILOT_JS;
+  s.defer = true;
+  s.onerror = () => {
+    host.innerHTML = '<section class="panel pendiente"><h2 class="panel__title">No se pudo cargar</h2>' +
+      '<p>El widget de DGP no respondió. Vuelve a intentarlo en un rato.</p></section>';
+    redesMontado = false;
+  };
+  document.head.appendChild(s);
+  redesMontado = true;
 }
 
 arranque();
