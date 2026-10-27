@@ -521,3 +521,15 @@ button,input{font:inherit;color:inherit}
   font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
   color:var(--blue);background:var(--blue-100)}
 .pendiente__pie{font-size:.86rem !important;color:var(--ink-soft) !important}
+
+/* ---------- ajustes ---------- */
+.ajustes{display:grid;gap:1.1rem}
+.ajuste__campos{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1rem}
+.ajuste__estado{min-height:1.1em;font-size:.76rem;color:var(--ink-soft)}
+.ajuste__estado.is-ok{color:var(--ok)}
+.ajustes__pie{display:flex;align-items:center;justify-content:flex-end;gap:.6rem;flex-wrap:wrap}
+.ajustes__nota{margin:0 auto 0 0;font-size:.8rem;color:var(--ink-soft)}
+.revision{margin:0;padding:0;list-style:none;display:grid;gap:.6rem}
+.revision li{display:flex;align-items:baseline;gap:.7rem;flex-wrap:wrap;font-size:.9rem;color:var(--ink-dim)}
+.revision b{font-weight:600;color:var(--navy);min-width:11rem}
+.revision .pill{min-width:4.6rem;text-align:center}

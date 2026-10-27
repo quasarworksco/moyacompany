@@ -59,6 +59,7 @@
         <button class="tab" type="button" data-vista="contactos">Contactos</button>
         <button class="tab" type="button" data-vista="contenido">Contenido</button>
         <button class="tab" type="button" data-vista="redes">Redes</button>
+        <button class="tab" type="button" data-vista="ajustes" hidden>Ajustes</button>
       </nav>
       <div class="topbar__actions">
         <span class="quien" id="quien"></span>
@@ -300,6 +301,111 @@
         </div>
       </div>
       <div id="autopilot"></div>
+    </div>
+
+    <!-- ---------- AJUSTES (sólo rol admin) ---------- -->
+    <div class="vista" id="vista-ajustes" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title">Ajustes</h1>
+          <p class="vista__sub">Las claves de las integraciones. Se guardan en la base y nunca se vuelven a mostrar.</p>
+        </div>
+      </div>
+
+      <form class="ajustes" id="formAjustes" autocomplete="off">
+        <section class="panel ajuste">
+          <header class="panel__head">
+            <div>
+              <h2 class="panel__title">Twilio · línea de llamadas</h2>
+              <p class="panel__sub">En console.twilio.com: Account Info para el SID y el token; Account → API keys &amp; tokens para la API Key (tipo Standard).</p>
+            </div>
+          </header>
+          <div class="ajuste__campos">
+          <label class="afield">
+            <span>Account SID</span>
+            <input type="text" id="TWILIO_ACCOUNT_SID" data-clave="TWILIO_ACCOUNT_SID" placeholder="AC…" autocomplete="off"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="TWILIO_ACCOUNT_SID"></small>
+          </label>
+          <label class="afield">
+            <span>Auth Token</span>
+            <input type="password" id="TWILIO_AUTH_TOKEN" data-clave="TWILIO_AUTH_TOKEN" placeholder="32 caracteres" autocomplete="new-password"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="TWILIO_AUTH_TOKEN"></small>
+          </label>
+          <label class="afield">
+            <span>API Key · SID</span>
+            <input type="text" id="TWILIO_API_KEY_SID" data-clave="TWILIO_API_KEY_SID" placeholder="SK…" autocomplete="off"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="TWILIO_API_KEY_SID"></small>
+          </label>
+          <label class="afield">
+            <span>API Key · Secret</span>
+            <input type="password" id="TWILIO_API_KEY_SECRET" data-clave="TWILIO_API_KEY_SECRET" placeholder="32 caracteres" autocomplete="new-password"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="TWILIO_API_KEY_SECRET"></small>
+          </label>
+          <label class="afield">
+            <span>Número de Moya</span>
+            <input type="tel" id="TWILIO_NUMERO" data-clave="TWILIO_NUMERO" placeholder="+1 713 000 0000" autocomplete="off"
+                   autocapitalize="none" spellcheck="false" inputmode="tel" />
+            <small class="ajuste__estado" data-estado="TWILIO_NUMERO"></small>
+          </label>
+          </div>
+        </section>
+
+        <section class="panel ajuste">
+          <header class="panel__head">
+            <div>
+              <h2 class="panel__title">Groq · asistente con IA</h2>
+              <p class="panel__sub">Transcribe y resume cada llamada. La clave se crea en console.groq.com → API Keys.</p>
+            </div>
+          </header>
+          <div class="ajuste__campos">
+          <label class="afield">
+            <span>API key</span>
+            <input type="password" id="GROQ_API_KEY" data-clave="GROQ_API_KEY" placeholder="gsk_…" autocomplete="new-password"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="GROQ_API_KEY"></small>
+          </label>
+          </div>
+        </section>
+
+        <section class="panel ajuste">
+          <header class="panel__head">
+            <div>
+              <h2 class="panel__title">Social Media Autopilot · DGP</h2>
+              <p class="panel__sub">Los dos datos que entrega DGP al activar el plan. Encienden la sección Redes.</p>
+            </div>
+          </header>
+          <div class="ajuste__campos">
+          <label class="afield">
+            <span>Cliente</span>
+            <input type="text" id="autopilot_cliente" data-clave="autopilot_cliente" placeholder="ID de DGP" autocomplete="off"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="autopilot_cliente"></small>
+          </label>
+          <label class="afield">
+            <span>Clave</span>
+            <input type="password" id="autopilot_clave" data-clave="autopilot_clave" placeholder="Clave de DGP" autocomplete="new-password"
+                   autocapitalize="none" spellcheck="false" />
+            <small class="ajuste__estado" data-estado="autopilot_clave"></small>
+          </label>
+          </div>
+        </section>
+
+        <div class="ajustes__pie">
+          <p class="ajustes__nota">Deja en blanco lo que no quieras cambiar.</p>
+          <button class="abtn abtn--ghost" type="button" id="btnProbar">Probar conexión</button>
+          <button class="abtn abtn--primary" type="submit" id="btnGuardarAjustes">Guardar y probar</button>
+        </div>
+        <p class="gate__error" id="ajustesError" role="alert" hidden></p>
+      </form>
+
+      <section class="panel" id="revision" hidden>
+        <header class="panel__head"><h2 class="panel__title">Revisión</h2></header>
+        <ul class="revision" id="listaRevision"></ul>
+      </section>
     </div>
 
   </main>

@@ -16,7 +16,7 @@ const nf = new Intl.NumberFormat('es-MX');
 /* Los módulos son los que la base conoce en puede(); 'resumen' no es un
    módulo: es la portada, y enseña sólo lo que cada módulo permita. */
 const MODULOS = ['metricas', 'llamadas', 'contactos', 'contenido'];
-const VISTAS = ['resumen', ...MODULOS, 'redes'];
+const VISTAS = ['resumen', ...MODULOS, 'redes', 'ajustes'];
 const permisos = { metricas: false, llamadas: false, contactos: false, contenido: false };
 let sesion = null;
 
@@ -53,8 +53,10 @@ async function aplicarSesion(s) {
   if (!s) return mostrarAcceso();
 
   // La base decide: si no hay fila en admins, puede() devuelve false para todo.
-  const respuestas = await Promise.all(MODULOS.map((m) => sb.rpc('puede', { modulo: m })));
+  const [respuestas, admin] = await Promise.all([
+    Promise.all(MODULOS.map((m) => sb.rpc('puede', { modulo: m }))), sb.rpc('es_admin')]);
   MODULOS.forEach((m, i) => { permisos[m] = respuestas[i].data === true; });
+  permisos.ajustes = admin.data === true;   // las claves sólo las toca el rol admin
   permisos.resumen = MODULOS.some((m) => permisos[m]);
   permisos.redes = permisos.contenido;   // las redes cuelgan del módulo de contenido
 
@@ -121,6 +123,7 @@ function irA(vista) {
   if (vista === 'contactos') cargarContactos();
   if (vista === 'contenido') cargarContenido();
   if (vista === 'redes')     cargarRedes();
+  if (vista === 'ajustes')   cargarAjustes();
 }
 $('tabs').addEventListener('click', (e) => {
   const t = e.target.closest('.tab');
@@ -1637,8 +1640,7 @@ async function cargarRedes() {
          contratado, DGP entrega dos datos y la sección aparece sola aquí, sin tocar el sitio.</p>
       <ol class="pendiente__pasos">
         <li>DGP crea la cuenta de Autopilot y conecta la página de Facebook y el Instagram.</li>
-        <li>Se guardan <code>autopilot_cliente</code> y <code>autopilot_clave</code>
-            en la tabla <code>integraciones</code> de Supabase.</li>
+        <li>Un administrador pega esos dos datos en <b>Ajustes</b>.</li>
         <li>Al volver a entrar, aquí se ve el calendario, lo publicado y el botón de pausa.</li>
       </ol>
       <p class="pendiente__pie">Mientras tanto, los diseños se cargan en
@@ -1666,5 +1668,69 @@ async function cargarRedes() {
   document.head.appendChild(s);
   redesMontado = true;
 }
+
+/* =========================================================
+   10. Ajustes — claves de Twilio, Groq y Autopilot
+   La base nunca devuelve un secreto: integraciones_estado()
+   sólo dice si está puesto y, de los SID y el número, los
+   últimos 4. Un campo vacío al guardar deja la clave como está.
+   ========================================================= */
+const campos = () => [...document.querySelectorAll('#formAjustes [data-clave]')];
+
+async function cargarAjustes() {
+  $('ajustesError').hidden = true;
+  const { data, error } = await sb.rpc('integraciones_estado');
+  if (error || !data) {
+    $('ajustesError').textContent = 'No se pudieron leer los ajustes' + (error ? ': ' + error.message : '.');
+    $('ajustesError').hidden = false;
+    return;
+  }
+  campos().forEach((inp) => {
+    const e = data[inp.dataset.clave] || {};
+    const est = document.querySelector(`[data-estado="${inp.dataset.clave}"]`);
+    inp.value = '';
+    est.classList.toggle('is-ok', !!e.puesta);
+    est.textContent = !e.puesta ? 'Sin configurar'
+      : 'Guardado' + (e.final ? ' · termina en ' + e.final : '') +
+        (e.updated_at ? ' · ' + fechaCorta(e.updated_at) : '');
+  });
+}
+
+async function probarAjustes() {
+  const caja = $('revision'), lista = $('listaRevision');
+  caja.hidden = false;
+  lista.innerHTML = '<li>Revisando con Twilio y Groq…</li>';
+  const { data, error } = await sb.functions.invoke('llamadas', { body: { accion: 'probar' } });
+  if (error || data?.error) {
+    lista.innerHTML = `<li><span class="pill pill--mal">Error</span> ${escapar(await motivo(error, data))}</li>`;
+    return;
+  }
+  lista.innerHTML = (data.revision || []).map((r) =>
+    `<li><span class="pill ${r.ok ? 'pill--ok' : 'pill--mal'}">${r.ok ? 'Bien' : 'Revisar'}</span>
+      <b>${escapar(r.que)}</b> ${escapar(r.detalle)}</li>`).join('');
+  redesMontado = false;   // si cambió Autopilot, Redes se vuelve a montar
+}
+
+$('btnProbar').addEventListener('click', async (e) => {
+  e.currentTarget.disabled = true;
+  await probarAjustes();
+  e.currentTarget.disabled = false;
+});
+
+$('formAjustes').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('ajustesError'), btn = $('btnGuardarAjustes');
+  err.hidden = true;
+  const p = {};
+  campos().forEach((inp) => { if (inp.value.trim()) p[inp.dataset.clave] = inp.value.trim(); });
+  if (!Object.keys(p).length) { err.textContent = 'No escribiste nada nuevo.'; err.hidden = false; return; }
+
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const { error } = await sb.rpc('guardar_integraciones', { p });
+  btn.disabled = false; btn.textContent = 'Guardar y probar';
+  if (error) { err.textContent = error.message; err.hidden = false; return; }
+  await cargarAjustes();
+  await probarAjustes();
+});
 
 arranque();

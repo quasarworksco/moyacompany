@@ -156,23 +156,19 @@ de Twilio, el panel muestra «Línea no conectada» y el resto sigue funcionando
 
 ### Conectar Twilio y la IA
 
-Las claves se guardan en la tabla `integraciones`, para poder rotarlas sin volver a
-desplegar. Esa tabla tiene RLS sin políticas: **nadie la alcanza por la API**, sólo la
-función con `service_role`. Desde el SQL Editor:
+Desde el panel: pestaña **Ajustes** (sólo la ve el rol `admin`). Ahí se pegan el
+Account SID, el Auth Token, la API Key (SID y Secret), el número y la clave de Groq,
+y **Guardar y probar** revisa cada una contra Twilio y Groq.
 
-```sql
-insert into public.integraciones (clave, valor) values
-  ('TWILIO_ACCOUNT_SID',     '...'),
-  ('TWILIO_AUTH_TOKEN',      '...'),
-  ('TWILIO_API_KEY_SID',     '...'),
-  ('TWILIO_API_KEY_SECRET',  '...'),
-  ('TWILIO_NUMERO',          '+1XXXXXXXXXX'),
-  ('GROQ_API_KEY',           '...')
-on conflict (clave) do update set valor = excluded.valor, updated_at = now();
-```
+Las claves viven en la tabla `integraciones`, que tiene RLS sin políticas: nadie la
+alcanza por la API. El panel entra sólo por dos funciones que exigen rol admin
+(migración `0007`): `guardar_integraciones()` escribe y valida el formato, e
+`integraciones_estado()` dice qué está puesto sin devolver nunca un secreto (de los
+SID y del número, los últimos 4). Para cambiar una clave se pega la nueva; un campo
+vacío deja la que había.
 
-La primera vez que alguien abra el marcador, la función crea sola la «TwiML App» en
-Twilio y apunta el número a sí misma. No hay que configurar webhooks a mano.
+Al probar, si todo está bien, la función crea sola la «TwiML App» en Twilio y apunta
+el número a sí misma. No hay que configurar webhooks a mano.
 
 ### Grabación y consentimiento
 
