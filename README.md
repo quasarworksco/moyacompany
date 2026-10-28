@@ -188,9 +188,14 @@ Mientras hay una llamada (entrante o saliente) flota abajo el panel de llamada e
 quién es, el tiempo, Silenciar y Colgar.
 
 Los SMS que llegan al número entran como mensajes en la ficha del contacto (o de uno
-nuevo) y se leen en **Llamadas → SMS recibidos**, que se actualiza sola cada 30 s. Los
+nuevo) y se leen en **Llamadas**, en la pestaña SMS de la bandeja, que se actualiza
+sola cada 30 s. Los
 ve quien tenga permiso de llamadas (migración `0009`). Sólo se reciben: enviar SMS desde
 un número local exige el registro A2P 10DLC en Twilio.
+
+Las llamadas y los SMS se pueden eliminar desde su detalle. Salen de la lista en el acto
+y quedan 6 segundos para deshacer; después se borran de verdad (la llamada, con su
+grabación). Migración `0010`.
 
 El SDK de voz de Twilio está en `assets/js/vendor/`: Twilio no publica la versión 2 en
 un CDN. Para actualizarlo: `npm pack @twilio/voice-sdk@<versión>` y copiar

@@ -82,6 +82,12 @@
     </div>
   </div>
 
+  <!-- deshacer: lo eliminado se borra de verdad cuando acaba la cuenta -->
+  <div class="deshacer" id="deshacer" role="status" aria-live="polite" hidden>
+    <span id="deshacerTxt">Eliminado</span>
+    <button type="button" class="deshacer__btn" id="btnDeshacer">Deshacer (<span id="deshacerSeg">6</span>)</button>
+  </div>
+
   <main class="wrap main">
     <div class="notice" id="notice" hidden></div>
 
@@ -152,7 +158,6 @@
       </div>
 
       <div class="llamadas">
-        <div class="llamadas__col">
           <!-- marcador -->
           <section class="panel marcador" id="marcador">
             <header class="panel__head">
@@ -192,30 +197,26 @@
             <p class="marcador__estado" id="marcadorEstado"></p>
           </section>
 
-          <section class="panel llamadas__lista">
-            <header class="panel__head">
-              <h2 class="panel__title">Historial</h2>
-              <select class="filtro" id="filtroLlamadas">
+          <!-- bandeja: llamadas y SMS en pestañas, a la vista sin bajar -->
+          <section class="panel bandeja" aria-label="Llamadas y SMS">
+            <header class="bandeja__head">
+              <div class="segmentos segmentos--chico" id="segBandeja" role="tablist">
+                <button class="segmento is-on" type="button" role="tab" aria-selected="true" data-bandeja="llamadas">Llamadas</button>
+                <button class="segmento" type="button" role="tab" aria-selected="false" data-bandeja="sms">SMS <span class="bolita" id="smsNuevos" hidden></span></button>
+              </div>
+              <select class="filtro" id="filtroLlamadas" aria-label="Filtrar llamadas">
                 <option value="">Todas</option>
                 <option value="entrante">Entrantes</option>
                 <option value="saliente">Salientes</option>
                 <option value="sin_respuesta">Sin respuesta</option>
               </select>
             </header>
-            <ul class="lista" id="listaLlamadas"></ul>
+            <ul class="lista bandeja__lista" id="listaLlamadas"></ul>
+            <ul class="lista bandeja__lista" id="listaSms" hidden></ul>
           </section>
-
-          <section class="panel llamadas__lista" id="panelSms">
-            <header class="panel__head">
-              <h2 class="panel__title">SMS recibidos <span class="pill pill--ia" id="smsNuevos" hidden></span></h2>
-              <button class="abtn abtn--ghost abtn--sm" type="button" id="recargarSms">Actualizar</button>
-            </header>
-            <ul class="lista" id="listaSms"></ul>
-          </section>
-        </div>
 
         <section class="panel detalle" id="detalle">
-          <p class="detalle__vacio">Elige una llamada para ver su grabación y el resumen.</p>
+          <p class="detalle__vacio">Elige una llamada o un SMS para ver el detalle.</p>
         </section>
       </div>
     </div>
