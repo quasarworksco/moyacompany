@@ -534,14 +534,27 @@ button,input{font:inherit;color:inherit}
 .revision b{font-weight:600;color:var(--navy);min-width:11rem}
 .revision .pill{min-width:4.6rem;text-align:center}
 
-/* ---------- llamada entrante ---------- */
-.entrante{position:fixed;left:50%;bottom:1.2rem;z-index:40;transform:translateX(-50%);
-  width:min(560px,calc(100% - 32px));display:flex;align-items:center;justify-content:space-between;
+/* ---------- llamada en curso ---------- */
+.enllamada{position:fixed;left:50%;bottom:1.2rem;z-index:40;transform:translateX(-50%);
+  width:min(600px,calc(100% - 32px));display:flex;align-items:center;justify-content:space-between;
   gap:.8rem;flex-wrap:wrap;padding:1rem 1.2rem;border-radius:20px;background:var(--navy);color:#fff;
-  box-shadow:0 24px 48px -20px rgba(9,30,110,.8);animation:entrante-pulso 1.6s ease-in-out infinite}
-.entrante[hidden]{display:none}
-.entrante__txt{margin:0;font-weight:600;font-size:.95rem;overflow-wrap:anywhere}
-.entrante__btns{display:flex;gap:.5rem;flex-wrap:wrap}
-@keyframes entrante-pulso{50%{box-shadow:0 24px 48px -20px rgba(51,101,250,.95)}}
-@media (prefers-reduced-motion:reduce){.entrante{animation:none}}
+  box-shadow:0 24px 48px -20px rgba(9,30,110,.8)}
+.enllamada[hidden]{display:none}
+.enllamada.is-sonando{animation:enllamada-pulso 1.6s ease-in-out infinite}
+.enllamada__info{min-width:0}
+.enllamada__quien{margin:0;font-weight:600;font-size:.95rem;overflow-wrap:anywhere}
+.enllamada__estado{margin:.15rem 0 0;font-size:.8rem;color:rgba(255,255,255,.72);font-variant-numeric:tabular-nums}
+.enllamada__btns{display:flex;gap:.5rem;flex-wrap:wrap}
+.enllamada #btnSilenciar[aria-pressed="true"]{color:#fff;background:#c0323a;border-color:#c0323a}
+@keyframes enllamada-pulso{50%{box-shadow:0 24px 48px -20px rgba(51,101,250,.95)}}
+@media (prefers-reduced-motion:reduce){.enllamada.is-sonando{animation:none}}
+/* el panel flotante no tapa el final de la página */
+body:has(.enllamada:not([hidden])) .main{padding-bottom:8rem}
+
+/* ---------- SMS ---------- */
+.fila.is-nuevo .fila__top b::after{content:"";display:inline-block;width:7px;height:7px;margin-left:.4rem;
+  border-radius:50%;background:var(--blue);vertical-align:middle}
+.fila__txt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.sms__texto{margin:0;padding:1rem 1.1rem;border-radius:16px;background:#f4f7ff;border:1px solid var(--line);
+  font-size:.95rem;line-height:1.6;color:var(--navy);white-space:pre-wrap;overflow-wrap:anywhere}
 .marcador__nota{margin:0;font-size:.78rem;color:var(--ink-soft);text-align:center}

@@ -68,13 +68,17 @@
     </div>
   </header>
 
-  <!-- llamada entrante: suena en cualquier sección del panel -->
-  <div class="entrante" id="entrante" role="alertdialog" aria-live="assertive" aria-labelledby="entranteTxt" hidden>
-    <p class="entrante__txt" id="entranteTxt">Llamada entrante</p>
-    <div class="entrante__btns">
-      <button class="abtn abtn--primary" type="button" id="btnContestar">Contestar</button>
-      <button class="abtn abtn--ghost" type="button" id="btnBuzon">Al buzón</button>
-      <button class="abtn abtn--peligro" type="button" id="btnColgarEntrante" hidden>Colgar</button>
+  <!-- llamada en curso (entrante o saliente): se ve en cualquier sección del panel -->
+  <div class="enllamada" id="panelLlamada" role="alertdialog" aria-live="assertive" aria-labelledby="plQuien" hidden>
+    <div class="enllamada__info">
+      <p class="enllamada__quien" id="plQuien">—</p>
+      <p class="enllamada__estado" id="plEstado">—</p>
+    </div>
+    <div class="enllamada__btns">
+      <button class="abtn abtn--primary" type="button" id="btnContestar" hidden>Contestar</button>
+      <button class="abtn abtn--ghost" type="button" id="btnBuzon" hidden>Al buzón</button>
+      <button class="abtn abtn--ghost" type="button" id="btnSilenciar" aria-pressed="false" hidden>Silenciar</button>
+      <button class="abtn abtn--peligro" type="button" id="btnColgarPanel" hidden>Colgar</button>
     </div>
   </div>
 
@@ -199,6 +203,14 @@
               </select>
             </header>
             <ul class="lista" id="listaLlamadas"></ul>
+          </section>
+
+          <section class="panel llamadas__lista" id="panelSms">
+            <header class="panel__head">
+              <h2 class="panel__title">SMS recibidos <span class="pill pill--ia" id="smsNuevos" hidden></span></h2>
+              <button class="abtn abtn--ghost abtn--sm" type="button" id="recargarSms">Actualizar</button>
+            </header>
+            <ul class="lista" id="listaSms"></ul>
           </section>
         </div>
 
