@@ -171,7 +171,7 @@ button,input{font:inherit;color:inherit}
 .quien{font-size:.8rem;color:var(--ink-soft);max-width:14rem;overflow:hidden;
   text-overflow:ellipsis;white-space:nowrap}
 
-.vista{display:grid;gap:1.1rem}
+.vista{display:grid;gap:1.1rem;grid-template-columns:minmax(0,1fr)}
 .vista__head{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap}
 .vista__title{margin:0;font-size:1.3rem;font-weight:700;letter-spacing:-.02em;color:var(--navy)}
 .vista__sub{margin:.2rem 0 0;font-size:.82rem;color:var(--ink-soft);display:flex;
@@ -504,7 +504,7 @@ button,input{font:inherit;color:inherit}
 .cal__pendientes .ficha__h3{margin:0 0 .3rem}
 
 @media (max-width:1100px){
-  .cols,.cols--ancha{grid-template-columns:1fr}
+  .cols,.cols--ancha{grid-template-columns:minmax(0,1fr)}
   .cols__lista{position:static}
   .lista--alta{max-height:24rem}
 }
@@ -596,3 +596,109 @@ body:has(.enllamada:not([hidden])) .main{padding-bottom:8rem}
   color:var(--navy);background:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
 .deshacer__btn:hover{background:var(--blue-100)}
 .det__eliminar{margin-left:auto}
+
+/* =========================================================
+   Móvil como app
+   Barra de secciones abajo con íconos, el detalle a pantalla completa
+   con «Volver», Llamadas como el teléfono (Teclado | Recientes) y los
+   márgenes del notch y de la barra de inicio del iPhone.
+   En escritorio nada de esto se ve.
+   ========================================================= */
+body{-webkit-tap-highlight-color:transparent}
+button,.tecla,.fila,.tab{touch-action:manipulation}
+.tab__ico{width:22px;height:22px;flex:0 0 auto;fill:none;stroke:currentColor;stroke-width:1.8;
+  stroke-linecap:round;stroke-linejoin:round}
+.tab .tab__ico,.tab__corto,.tab--mas,.llamadas__modo{display:none}
+@media (min-width:701px){ .mas,.hoja__barra{display:none !important} }
+@keyframes app-sube{from{transform:translateY(100%)}}
+@keyframes app-entra{from{transform:translateX(100%)}}
+
+@media (max-width:700px){
+  :root{--nav-h:62px}
+  body{padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
+  .wrap{width:calc(100% - 2rem - env(safe-area-inset-left) - env(safe-area-inset-right))}
+
+  /* arriba: sólo la marca, compacta */
+  /* sin desenfoque: con backdrop-filter la barra de abajo quedaría
+     pegada a esta en vez de a la pantalla */
+  .topbar{padding:calc(.5rem + env(safe-area-inset-top)) 0 .5rem;background:#fff;
+    backdrop-filter:none;-webkit-backdrop-filter:none}
+  .topbar__inner{flex-wrap:nowrap}
+  .topbar__brand img{height:30px}
+  .topbar__sub,.topbar__actions{display:none}
+
+  /* abajo: la barra de secciones */
+  .tabs{position:fixed;left:0;right:0;bottom:0;z-index:40;order:0;width:auto;margin:0;
+    display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:0;overflow:visible;
+    padding:.25rem max(.25rem, env(safe-area-inset-right)) calc(.25rem + env(safe-area-inset-bottom)) max(.25rem, env(safe-area-inset-left));
+    background:rgba(255,255,255,.94);border-top:1px solid var(--line);
+    backdrop-filter:blur(16px) saturate(160%);-webkit-backdrop-filter:blur(16px) saturate(160%)}
+  .tab{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.12rem;
+    min-height:52px;padding:.3rem 0;border-radius:14px;font-size:.66rem;font-weight:600;
+    color:var(--ink-soft);background:none;box-shadow:none}
+  .tab:hover{background:none}
+  .tab.is-on{color:var(--blue);background:none;box-shadow:none}
+  .tab.is-on .tab__ico{stroke-width:2.3}
+  .tab .tab__ico,.tab__corto{display:block}
+  .tab--mas{display:flex}
+  .tab__largo,.tab--extra{display:none !important}
+
+  .main{padding:1.1rem 0 1.4rem}
+  .vista__title{font-size:1.45rem}
+  .panel{border-radius:18px}
+
+  /* iOS hace zoom en campos de menos de 16 px */
+  input:not([type=checkbox]):not([type=radio]):not([type=file]):not(#numeroLlamar),
+  select:not(#numeroLlamar),textarea:not(#numeroLlamar){font-size:16px}
+
+  /* las listas corren con la página, como en una app */
+  .lista,.lista--alta,.lista.bandeja__lista{max-height:none;min-height:0;overflow:visible}
+  .fila{padding:.8rem .75rem}
+  .fila:active{background:#eef3ff}
+
+  /* el detalle: pantalla completa que entra desde la derecha */
+  .detalle:not(.is-abierta){display:none}
+  .llamadas > .detalle.is-abierta,.detalle.is-abierta{position:fixed;inset:0;z-index:35;margin:0;
+    max-height:none;border:0;border-radius:0;box-shadow:none;overflow-y:auto;overscroll-behavior:contain;
+    padding:calc(3.7rem + env(safe-area-inset-top)) 1rem calc(1.5rem + var(--nav-h) + env(safe-area-inset-bottom));
+    animation:app-entra .28s var(--ease)}
+  .hoja__barra{position:fixed;top:0;left:0;right:0;z-index:36;display:flex;align-items:center;
+    padding:calc(.35rem + env(safe-area-inset-top)) .4rem .35rem;background:rgba(255,255,255,.94);
+    border-bottom:1px solid var(--line);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
+  .hoja__volver{display:inline-flex;align-items:center;gap:.1rem;min-height:44px;padding:0 .7rem 0 .3rem;
+    border:0;background:none;cursor:pointer;font-size:1rem;font-weight:600;color:var(--blue)}
+  .hoja__volver svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:2.2;
+    stroke-linecap:round;stroke-linejoin:round}
+
+  /* menú «Más»: hoja que sube desde abajo */
+  .mas{position:fixed;inset:0;z-index:50}
+  .mas__fondo{position:absolute;inset:0;background:rgba(8,18,53,.38)}
+  .mas__hoja{position:absolute;left:0;right:0;bottom:0;display:grid;gap:.15rem;
+    padding:.7rem .8rem calc(1rem + env(safe-area-inset-bottom));background:#fff;
+    border-radius:22px 22px 0 0;animation:app-sube .25s var(--ease)}
+  .mas__quien{margin:.2rem .7rem .4rem;font-size:.8rem;color:var(--ink-soft);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mas__item{display:flex;align-items:center;gap:.85rem;min-height:52px;padding:0 .8rem;border:0;
+    border-radius:14px;background:none;cursor:pointer;font-size:1rem;font-weight:500;color:var(--navy);text-align:left}
+  .mas__item:active{background:var(--blue-100)}
+  .mas__item .tab__ico{color:var(--blue)}
+  .mas__item--salir{justify-content:center;margin-top:.5rem;border-top:1px solid var(--line);
+    border-radius:0;color:var(--bad);font-weight:600}
+
+  /* Llamadas: Teclado | Recientes, como el teléfono */
+  .llamadas__modo{display:inline-flex;justify-self:stretch;width:100%}
+  .llamadas__modo .segmento{flex:1;justify-content:center;min-height:42px}
+  .llamadas.ver-marcador > .bandeja,.llamadas.ver-bandeja > .marcador{display:none}
+  .marcador{padding:1.2rem 1.1rem}
+  .marcador .panel__head{display:none}
+  .marcador__pantalla input{font-size:1.7rem;padding:.8rem 3rem .8rem 1rem}
+  .teclado{gap:.7rem}
+  .marcador .tecla{padding:.8rem 0;border-radius:18px}
+  .tecla b{font-size:1.55rem}
+  .marcador__btns .abtn{min-height:54px;font-size:1rem}
+
+  /* lo flotante, por encima de la barra de abajo */
+  .enllamada{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + .6rem);z-index:45}
+  .deshacer{top:auto;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + .7rem)}
+  body:has(.enllamada:not([hidden])) .main{padding-bottom:9rem}
+}

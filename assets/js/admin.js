@@ -69,8 +69,9 @@ async function aplicarSesion(s) {
   $('gate').hidden = true;
   $('app').hidden = false;
   $('quien').textContent = s.user.email;
+  $('quienMovil').textContent = s.user.email;
 
-  document.querySelectorAll('.tab').forEach((t) => {
+  document.querySelectorAll('.tab[data-vista], .mas__item[data-vista]').forEach((t) => {
     t.hidden = !permisos[t.dataset.vista];
   });
   irA(VISTAS.find((v) => permisos[v]));
@@ -111,11 +112,18 @@ $('olvide').addEventListener('click', async () => {
   err.hidden = false;
 });
 
-$('logout').addEventListener('click', async () => { await sb.auth.signOut(); location.reload(); });
+const salir = async () => { await sb.auth.signOut(); location.reload(); };
+$('logout').addEventListener('click', salir);
+$('logoutMovil').addEventListener('click', salir);
 
 /* ---------- 2. Navegación ---------- */
+const EXTRAS = ['metricas', 'redes', 'ajustes'];   // en el móvil van en «Más»
 function irA(vista) {
-  document.querySelectorAll('.tab').forEach((t) => t.classList.toggle('is-on', t.dataset.vista === vista));
+  cerrarHoja();
+  cerrarMas();
+  document.querySelectorAll('.tab[data-vista]').forEach((t) => t.classList.toggle('is-on', t.dataset.vista === vista));
+  $('btnMas').classList.toggle('is-on', EXTRAS.includes(vista));
+  if (esMovil()) window.scrollTo(0, 0);
   VISTAS.forEach((v) => { $('vista-' + v).hidden = v !== vista; });
   aviso('');
   if (vista === 'resumen')   cargarResumen();
@@ -128,7 +136,72 @@ function irA(vista) {
 }
 $('tabs').addEventListener('click', (e) => {
   const t = e.target.closest('.tab');
-  if (t) irA(t.dataset.vista);
+  if (!t) return;
+  if (t.id === 'btnMas') abrirMas();
+  else irA(t.dataset.vista);
+});
+
+/* ---------- 2b. Móvil como app ----------
+   Menú «Más» con lo que no cabe en la barra de abajo, y el detalle de
+   llamadas, SMS, contactos y diseños a pantalla completa con «Volver».
+   El botón atrás del teléfono también cierra el detalle. */
+const esMovil = () => matchMedia('(max-width:700px)').matches;
+
+function abrirMas() {
+  $('menuMas').hidden = false;
+  $('btnMas').setAttribute('aria-expanded', 'true');
+}
+function cerrarMas() {
+  $('menuMas').hidden = true;
+  $('btnMas').setAttribute('aria-expanded', 'false');
+}
+$('menuMas').addEventListener('click', (e) => {
+  if (e.target.closest('[data-cerrar-mas]')) return cerrarMas();
+  const item = e.target.closest('.mas__item[data-vista]');
+  if (item) irA(item.dataset.vista);
+});
+
+const HOJAS = ['detalle', 'fichaContacto', 'fichaContenido'];
+let hojaEnHistoria = false;
+function abrirHoja(el) {
+  HOJAS.forEach((id) => { if ($(id) !== el) $(id).classList.remove('is-abierta'); });
+  el.classList.add('is-abierta');
+  if (!esMovil()) return;
+  el.scrollTop = 0;
+  $('hojaBarra').hidden = false;
+  if (!hojaEnHistoria) { history.pushState({ hoja: true }, ''); hojaEnHistoria = true; }
+}
+function cerrarHoja() {
+  HOJAS.forEach((id) => $(id).classList.remove('is-abierta'));
+  $('hojaBarra').hidden = true;
+  if (hojaEnHistoria) { hojaEnHistoria = false; history.back(); }
+}
+$('hojaVolver').addEventListener('click', cerrarHoja);
+window.addEventListener('popstate', () => {
+  if (!hojaEnHistoria) return;
+  hojaEnHistoria = false;           // el atrás del teléfono ya sacó la entrada
+  cerrarHoja();
+});
+// La hoja se abre sola cuando el detalle se llena, y se cierra cuando vuelve a quedar vacío.
+HOJAS.forEach((id) => new MutationObserver(() => {
+  const el = $(id);
+  if (el.querySelector(':scope > .detalle__vacio')) { if (el.classList.contains('is-abierta')) cerrarHoja(); }
+  else abrirHoja(el);
+}).observe($(id), { childList: true }));
+
+/* Llamadas en el móvil: Teclado o Recientes, como el teléfono. */
+function modoLlamadas(modo) {
+  document.querySelectorAll('#modoLlamadas .segmento').forEach((b) => {
+    const on = b.dataset.modo === modo;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  $('llamadasCuerpo').classList.toggle('ver-marcador', modo === 'marcador');
+  $('llamadasCuerpo').classList.toggle('ver-bandeja', modo === 'bandeja');
+}
+$('modoLlamadas').addEventListener('click', (e) => {
+  const b = e.target.closest('.segmento');
+  if (b) modoLlamadas(b.dataset.modo);
 });
 
 /* ---------- 3. Métricas ---------- */
@@ -679,8 +752,7 @@ async function cargarSms(callado = false) {
 function pintarSms() {
   const ul = $('listaSms');
   const nuevos = smsLista.filter((m) => !m.leido).length;
-  $('smsNuevos').textContent = nuevos;
-  $('smsNuevos').hidden = !nuevos;
+  ['smsNuevos', 'smsNuevosModo'].forEach((id) => { $(id).textContent = nuevos; $(id).hidden = !nuevos; });
   if (!smsLista.length) {
     ul.innerHTML = '<li class="lista__vacio">Todavía no llegan SMS al número de Moya.</li>';
     return;
@@ -721,6 +793,8 @@ async function verSms(id) {
     paraLlamar = m.contacto_id ? { id: m.contacto_id, numero, nombre: m.contactos?.nombre } : null;
     $('numeroLlamar').value = numero;
     $('marcadorEstado').textContent = 'Listo para llamar a ' + (m.contactos?.nombre || numero) + '.';
+    cerrarHoja();
+    modoLlamadas('marcador');
     $('marcador').scrollIntoView({ behavior: 'smooth', block: 'center' });
   });
   const ficha = $('smsFicha');
@@ -751,9 +825,9 @@ $('segBandeja').addEventListener('click', (e) => {
   const b = e.target.closest('.segmento');
   if (b) verBandeja(b.dataset.bandeja);
 });
-// En tablet y móvil el detalle queda debajo de la lista: se lleva la vista hasta él.
+// En tablet el detalle queda debajo de la lista: se lleva la vista hasta él (en el móvil es una hoja).
 const alDetalle = () => {
-  if (matchMedia('(max-width:1000px)').matches) $('detalle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (matchMedia('(min-width:701px) and (max-width:1000px)').matches) $('detalle').scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 /* ---------- Eliminar con deshacer ----------
@@ -1109,6 +1183,7 @@ async function borrarContacto(id, nombre) {
 function llamarA(c) {
   paraLlamar = { id: c.id, numero: c.telefono, nombre: c.nombre };
   irA('llamadas');
+  modoLlamadas('marcador');
   setTimeout(() => {
     $('numeroLlamar').value = c.telefono || '';
     $('marcadorEstado').textContent = 'Listo para llamar a ' + (c.nombre || c.telefono) + '.';
