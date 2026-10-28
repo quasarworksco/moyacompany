@@ -120,7 +120,7 @@ function irA(vista) {
   aviso('');
   if (vista === 'resumen')   cargarResumen();
   if (vista === 'metricas')  cargarMetricas();
-  if (vista === 'llamadas')  { cargarLlamadas(); iniciarLinea().catch(() => null); }
+  if (vista === 'llamadas')  { cargarLlamadas(); cargarSms(); iniciarLinea().catch(() => null); }
   if (vista === 'contactos') cargarContactos();
   if (vista === 'contenido') cargarContenido();
   if (vista === 'redes')     cargarRedes();
@@ -322,6 +322,7 @@ function pintarLista() {
 async function verLlamada(id) {
   elegida = id;
   pintarLista();
+  if (smsElegido) { smsElegido = null; pintarSms(); }
   const l = llamadas.find((x) => x.id === id);
   if (!l) return;
   const det = $('detalle');
@@ -529,21 +530,62 @@ async function abrirLinea() {
   return datos;
 }
 
-/* Una llamada, saliente o entrante, avisa en la llamada misma cuándo termina. */
-function seguirLlamada(call) {
+/* ---------- Panel de llamada en curso ----------
+   Flota abajo en cualquier sección: suena una entrante, se marca una
+   saliente o se está hablando. Muestra quién es, el tiempo y los botones. */
+const PANEL_BTNS = ['btnContestar', 'btnBuzon', 'btnSilenciar', 'btnColgarPanel'];
+let reloj = null;
+function panelLlamada(quien, estado, botones, sonando = false) {
+  $('plQuien').textContent = quien;
+  $('plEstado').textContent = estado;
+  PANEL_BTNS.forEach((b) => { $(b).hidden = !botones.includes(b); });
+  $('panelLlamada').classList.toggle('is-sonando', sonando);
+  $('panelLlamada').hidden = false;
+}
+function cerrarPanel() {
+  clearInterval(reloj);
+  reloj = null;
+  $('panelLlamada').hidden = true;
+  $('btnSilenciar').setAttribute('aria-pressed', 'false');
+  $('btnSilenciar').textContent = 'Silenciar';
+}
+
+/* El nombre del contacto si el número está en la cartera; si no, el número. */
+async function nombreDe(numero) {
+  const d = soloDigitos(numero).slice(-10);
+  if (d.length !== 10 || !permisos.contactos) return null;
+  const { data } = await sb.from('contactos').select('nombre,empresa').eq('tel_digitos', d).limit(1);
+  const c = (data || [])[0];
+  return c?.nombre ? c.nombre + (c.empresa ? ' (' + c.empresa + ')' : '') : null;
+}
+
+/* Una llamada, saliente o entrante, avisa en la llamada misma cuándo se
+   conecta y cuándo termina. */
+function seguirLlamada(call, quien) {
   conexion = call;
   const fin = () => {
     if (conexion !== call) return;
     conexion = null;
     paraLlamar = null;
+    cerrarPanel();
     $('marcadorEstado').textContent = 'Llamada terminada.';
     $('btnColgar').hidden = true;
     $('btnLlamar').hidden = false;
-    $('entrante').hidden = true;
-    setTimeout(cargarLlamadas, 4000);   // da tiempo a que Twilio avise el fin
+    setTimeout(() => { cargarLlamadas(); }, 4000);   // da tiempo a que Twilio avise el fin
   };
-  call.on('accept', () => { $('marcadorEstado').textContent = 'En llamada.'; });
+  call.on('accept', () => {
+    const desde = Date.now();
+    const tic = () => {
+      const t = Math.floor((Date.now() - desde) / 1000);
+      $('plEstado').textContent = 'En llamada · ' + Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0');
+    };
+    panelLlamada($('plQuien').textContent, 'En llamada · 0:00', ['btnSilenciar', 'btnColgarPanel']);
+    clearInterval(reloj);
+    reloj = setInterval(tic, 1000);
+    $('marcadorEstado').textContent = 'En llamada.';
+  });
   ['disconnect', 'cancel', 'reject', 'error'].forEach((ev) => call.on(ev, fin));
+  panelLlamada(quien, 'Llamando…', ['btnColgarPanel']);
 }
 
 /* ---------- Llamada entrante ---------- */
@@ -552,37 +594,32 @@ async function llamadaEntrante(call) {
   if (conexion) { call.ignore(); return; }   // ya en otra llamada: sigue sonando a los demás o va al buzón
   entrante = call;
   const desde = call.parameters?.From || '';
-  $('entranteTxt').textContent = 'Llamada entrante · ' + desde;
-  $('btnContestar').hidden = false;
-  $('btnBuzon').hidden = false;
-  $('btnColgarEntrante').hidden = true;
-  $('entrante').hidden = false;
-  const termina = () => { if (entrante === call) { entrante = null; if (conexion !== call) $('entrante').hidden = true; } };
+  panelLlamada(desde, 'Llamada entrante', ['btnContestar', 'btnBuzon'], true);
+  const termina = () => { if (entrante === call) { entrante = null; if (conexion !== call) cerrarPanel(); } };
   ['cancel', 'disconnect', 'reject'].forEach((ev) => call.on(ev, termina));
-
-  const d = soloDigitos(desde).slice(-10);
-  if (d.length === 10 && permisos.contactos) {
-    const { data } = await sb.from('contactos').select('nombre,empresa').eq('tel_digitos', d).limit(1);
-    const c = (data || [])[0];
-    if (c?.nombre && entrante === call) {
-      $('entranteTxt').textContent = 'Llamada entrante · ' + c.nombre + (c.empresa ? ' (' + c.empresa + ')' : '') + ' · ' + desde;
-    }
-  }
+  const nombre = await nombreDe(desde);
+  if (nombre && entrante === call) $('plQuien').textContent = nombre + ' · ' + desde;
 }
 
 $('btnContestar').addEventListener('click', () => {
   if (!entrante) return;
   const call = entrante;
-  seguirLlamada(call);
+  seguirLlamada(call, $('plQuien').textContent);
   call.accept();
-  $('btnContestar').hidden = true;
-  $('btnBuzon').hidden = true;
-  $('btnColgarEntrante').hidden = false;
-  $('entranteTxt').textContent = $('entranteTxt').textContent.replace('Llamada entrante', 'En llamada');
 });
 // Rechazar manda la llamada al buzón de voz
 $('btnBuzon').addEventListener('click', () => { if (entrante) entrante.reject(); });
-$('btnColgarEntrante').addEventListener('click', () => { if (conexion) conexion.disconnect(); });
+$('btnColgarPanel').addEventListener('click', () => {
+  if (conexion) conexion.disconnect();
+  else if (device) device.disconnectAll();
+});
+$('btnSilenciar').addEventListener('click', () => {
+  if (!conexion) return;
+  const mudo = !conexion.isMuted();
+  conexion.mute(mudo);
+  $('btnSilenciar').setAttribute('aria-pressed', String(mudo));
+  $('btnSilenciar').textContent = mudo ? 'Activar micrófono' : 'Silenciar';
+});
 
 $('btnLlamar').addEventListener('click', async () => {
   const est = $('marcadorEstado');
@@ -600,7 +637,9 @@ $('btnLlamar').addEventListener('click', async () => {
       .select('id').single();
     if (error) { est.textContent = 'No se pudo registrar la llamada: ' + error.message; return; }
 
-    seguirLlamada(await device.connect({ params: { To: numero, llamada: fila.id } }));
+    const quien = (mismo && paraLlamar.nombre) || await nombreDe(numero);
+    seguirLlamada(await device.connect({ params: { To: numero, llamada: fila.id } }),
+                  quien ? quien + ' · ' + numero : numero);
     est.textContent = 'Llamando a ' + numero + '…';
     $('btnColgar').hidden = false;
     $('btnLlamar').hidden = true;
@@ -614,6 +653,83 @@ $('btnColgar').addEventListener('click', () => {
   else if (device) device.disconnectAll();
 });
 
+
+/* ---------- 5b. SMS recibidos ----------
+   Llegan al número de Moya y la función los guarda como mensajes del
+   contacto. Aquí se leen, se marcan como leídos y se devuelve la llamada. */
+let smsLista = [], smsElegido = null;
+const numeroDeSms = (m) => m.contactos?.telefono || String(m.asunto || '').replace(/^SMS de\s*/, '');
+
+async function cargarSms(callado = false) {
+  const ul = $('listaSms');
+  if (!callado) ul.innerHTML = '<li class="lista__cargando">Cargando…</li>';
+  const { data, error } = await sb.from('mensajes')
+    .select('id,created_at,asunto,texto,leido,contacto_id,contactos(nombre,empresa,telefono)')
+    .eq('canal', 'sms').order('created_at', { ascending: false }).limit(100);
+  if (error) { if (!callado) ul.innerHTML = '<li class="lista__vacio">No se pudieron cargar los SMS.</li>'; return; }
+  smsLista = data || [];
+  pintarSms();
+}
+
+function pintarSms() {
+  const ul = $('listaSms');
+  const nuevos = smsLista.filter((m) => !m.leido).length;
+  $('smsNuevos').textContent = nuevos + (nuevos === 1 ? ' nuevo' : ' nuevos');
+  $('smsNuevos').hidden = !nuevos;
+  if (!smsLista.length) {
+    ul.innerHTML = '<li class="lista__vacio">Todavía no llegan SMS al número de Moya.</li>';
+    return;
+  }
+  ul.innerHTML = smsLista.map((m) => `<li><button class="fila ${smsElegido === m.id ? 'is-on' : ''} ${m.leido ? '' : 'is-nuevo'}"
+      type="button" data-id="${m.id}">
+      <span class="fila__cuerpo">
+        <span class="fila__top"><b>${escapar(m.contactos?.nombre || numeroDeSms(m))}</b><span class="fila__hora">${fechaCorta(m.created_at)}</span></span>
+        <span class="fila__bajo"><span class="fila__txt">${escapar(m.texto)}</span></span>
+      </span></button></li>`).join('');
+  ul.querySelectorAll('.fila').forEach((b) => b.addEventListener('click', () => verSms(b.dataset.id)));
+}
+
+async function verSms(id) {
+  const m = smsLista.find((x) => x.id === id);
+  if (!m) return;
+  smsElegido = id;
+  elegida = null;
+  pintarLista();
+  const numero = numeroDeSms(m);
+  $('detalle').innerHTML = `
+    <header class="det__head">
+      <div>
+        <h2 class="det__titulo">${escapar(m.contactos?.nombre || numero)}</h2>
+        <p class="det__sub">SMS · ${fechaCorta(m.created_at)} · ${escapar(numero)}
+           ${m.contactos?.empresa ? ' · ' + escapar(m.contactos.empresa) : ''}</p>
+      </div>
+      <span class="pill pill--ia">SMS</span>
+    </header>
+    <div class="det__acciones det__acciones--fila">
+      <button class="abtn abtn--primary abtn--sm" type="button" id="smsLlamar">Llamar</button>
+      ${permisos.contactos && m.contacto_id ? '<button class="abtn abtn--ghost abtn--sm" type="button" id="smsFicha">Ver su ficha</button>' : ''}
+    </div>
+    <p class="sms__texto">${escapar(m.texto)}</p>`;
+
+  $('smsLlamar').addEventListener('click', () => {
+    paraLlamar = m.contacto_id ? { id: m.contacto_id, numero, nombre: m.contactos?.nombre } : null;
+    $('numeroLlamar').value = numero;
+    $('marcadorEstado').textContent = 'Listo para llamar a ' + (m.contactos?.nombre || numero) + '.';
+    $('marcador').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
+  const ficha = $('smsFicha');
+  if (ficha) ficha.addEventListener('click', () => { irA('contactos'); setTimeout(() => verContacto(m.contacto_id), 250); });
+
+  if (!m.leido) {
+    m.leido = true;
+    pintarSms();
+    await sb.from('mensajes').update({ leido: true }).eq('id', m.id);
+  }
+}
+
+$('recargarSms').addEventListener('click', () => cargarSms());
+// Mientras la sección Llamadas esté abierta, los SMS nuevos aparecen solos.
+setInterval(() => { if (!$('vista-llamadas').hidden && permisos.llamadas) cargarSms(true); }, 30000);
 
 /* =========================================================
    6. Contactos, prospectos y postulantes
@@ -894,7 +1010,7 @@ async function borrarContacto(id, nombre) {
 /* Marcar desde la ficha: lleva a llamadas con el número puesto y deja
    anotado a quién se llama, para que la llamada nazca ya vinculada. */
 function llamarA(c) {
-  paraLlamar = { id: c.id, numero: c.telefono };
+  paraLlamar = { id: c.id, numero: c.telefono, nombre: c.nombre };
   irA('llamadas');
   setTimeout(() => {
     $('numeroLlamar').value = c.telefono || '';
