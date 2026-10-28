@@ -3,6 +3,7 @@
 // Desde el panel (sesión con permiso «llamadas»), JSON:
 //   { accion: 'token' }                 → token para llamar desde el navegador
 //   { accion: 'procesar', llamada_id }  → transcribe la grabación y extrae la información
+//   { accion: 'probar' }                → (sólo admin) revisa las claves de Ajustes y conecta la línea
 //
 // Desde Twilio (se valida la firma X-Twilio-Signature), ?evento=:
 //   saliente → TwiML de una llamada que sale del CRM   entrante  → llamada que entra al número de Moya
@@ -42,12 +43,13 @@ const decirEn = (t: string) => `<Say language="en-US" voice="Polly.Joanna">${esc
 const avisoBilingue = () => decirEn(AVISO_EN) + decirEs(AVISO_ES);
 
 let K: Record<string, string> = {}, kHora = 0;
-async function claves(db: SupabaseClient) {
-  if (Date.now() - kHora < 60000) return K;
+async function claves(db: SupabaseClient, fresco = false) {
+  if (!fresco && Date.now() - kHora < 60000) return K;
   const { data } = await db.rpc('claves_integracion');
   const v = (data || {}) as Record<string, string>;
   const n: Record<string, string> = {};
   NOMBRES.forEach((x) => { n[x] = Deno.env.get(x) || v[x] || ''; });
+  if (n.TWILIO_ACCOUNT_SID !== K.TWILIO_ACCOUNT_SID) appSid = '';   // otra cuenta, otra TwiML App
   K = n; kHora = Date.now();
   return K;
 }
@@ -130,6 +132,68 @@ async function configurarLinea() {
       { VoiceUrl: BASE + '?evento=entrante', VoiceMethod: 'POST' });
   }
   return appSid;
+}
+
+/* ---------- Ajustes: ¿funcionan las claves? ----------
+   Cada revisión dice qué falla en palabras de la persona que pegó la clave. */
+type Revision = { que: string; ok: boolean; detalle: string };
+async function probar(): Promise<Revision[]> {
+  const r: Revision[] = [];
+  const falta = (que: string, nombre: string) => r.push({ que, ok: false, detalle: 'Falta ' + nombre + '.' });
+
+  // 1. Account SID + Auth Token: la cuenta en sí
+  let cuenta = false;
+  if (!K.TWILIO_ACCOUNT_SID || !K.TWILIO_AUTH_TOKEN) falta('Cuenta de Twilio', 'el Account SID o el Auth Token');
+  else {
+    const a = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${K.TWILIO_ACCOUNT_SID}.json`,
+      { headers: { Authorization: 'Basic ' + btoa(K.TWILIO_ACCOUNT_SID + ':' + K.TWILIO_AUTH_TOKEN) } });
+    const j = await a.json().catch(() => ({}));
+    cuenta = a.ok && j.status === 'active';
+    r.push({ que: 'Cuenta de Twilio', ok: cuenta, detalle: a.ok
+      ? (cuenta ? j.friendly_name || 'Activa' : 'La cuenta está ' + j.status + '.')
+      : 'Twilio no reconoce el Account SID con ese Auth Token.' });
+  }
+
+  // 2. API Key: es la que firma el token del marcador
+  if (!K.TWILIO_API_KEY_SID || !K.TWILIO_API_KEY_SECRET) falta('API Key', 'el SID o el Secret de la API Key');
+  else if (K.TWILIO_ACCOUNT_SID) {
+    const a = await fetch(`https://api.twilio.com/2010-04-01/Accounts/${K.TWILIO_ACCOUNT_SID}/Calls.json?PageSize=1`,
+      { headers: { Authorization: 'Basic ' + btoa(K.TWILIO_API_KEY_SID + ':' + K.TWILIO_API_KEY_SECRET) } });
+    r.push({ que: 'API Key', ok: a.ok, detalle: a.ok ? 'Válida'
+      : 'El SID y el Secret no coinciden, o la key es de otra cuenta.' });
+  }
+
+  // 3. El número tiene que ser de esta cuenta y aceptar voz
+  let numero = false;
+  if (!K.TWILIO_NUMERO) falta('Número', 'el número de Twilio');
+  else if (cuenta) {
+    const tel = e164(K.TWILIO_NUMERO) || K.TWILIO_NUMERO;
+    const j = await twilio('IncomingPhoneNumbers.json?PhoneNumber=' + encodeURIComponent(tel)).catch(() => ({} as Record<string, any>));
+    const n = (j.incoming_phone_numbers || [])[0];
+    numero = !!n && n.capabilities?.voice !== false;
+    r.push({ que: 'Número', ok: numero, detalle: !n ? tel + ' no está en esta cuenta de Twilio.'
+      : numero ? tel : tel + ' no tiene voz.' });
+  }
+
+  // 4. Todo bien: se crea la TwiML App y el número apunta al CRM
+  if (cuenta && numero && r.every((x) => x.ok)) {
+    try {
+      await configurarLinea();
+      r.push({ que: 'Línea del CRM', ok: true, detalle: 'Las llamadas entran y salen por el panel.' });
+    } catch (e) {
+      r.push({ que: 'Línea del CRM', ok: false, detalle: (e as Error).message });
+    }
+  }
+
+  // 5. Groq: transcripción y resumen
+  if (!K.GROQ_API_KEY) falta('Asistente con IA (Groq)', 'la API key de Groq');
+  else {
+    const g = await fetch('https://api.groq.com/openai/v1/models',
+      { headers: { Authorization: 'Bearer ' + K.GROQ_API_KEY } });
+    r.push({ que: 'Asistente con IA (Groq)', ok: g.ok, detalle: g.ok ? 'Conectado'
+      : g.status === 401 ? 'Groq no reconoce la clave.' : 'Groq no respondió (' + g.status + ').' });
+  }
+  return r;
 }
 
 /* ---------- Consentimiento de grabación ----------
@@ -371,6 +435,12 @@ Deno.serve(async (req) => {
       });
     }
     if (b.accion === 'procesar') return json(req, 200, { ia: await procesar(db, String(b.llamada_id || '')) });
+    if (b.accion === 'probar') {
+      const { data: admin } = await comoUsuario.rpc('es_admin');
+      if (!admin) return json(req, 403, { error: 'Sólo un administrador puede revisar los ajustes.' });
+      await claves(db, true);                               // lo recién guardado, sin esperar el caché
+      return json(req, 200, { revision: await probar() });
+    }
     return json(req, 400, { error: 'Solicitud inválida' });
   } catch (e) {
     return json(req, 400, { error: (e as Error).message });
