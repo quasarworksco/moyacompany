@@ -7,15 +7,14 @@
 //
 // Desde Twilio (se valida la firma X-Twilio-Signature), ?evento=:
 //   saliente → TwiML de una llamada que sale del CRM   entrante  → llamada que entra al número de Moya
-//   aviso    → aviso de grabación que oye la persona   fin       → cómo terminó (y buzón si nadie contestó)
+//   fin      → cómo terminó (y buzón si nadie contestó)
 //   estado   → contestó / terminó                      grabacion → la grabación ya está lista
+//   sms      → un SMS que llega al número de Moya (sólo se reciben: enviar exige A2P 10DLC)
 import { createClient, SupabaseClient } from 'npm:@supabase/supabase-js@2.49.8';
 
 const ORIGENES = ['https://moyacompany.com', 'https://www.moyacompany.com'];
 const URL_BASE = Deno.env.get('SUPABASE_URL')!;            // sin referencias fijas al proyecto
 const BASE = URL_BASE + '/functions/v1/llamadas';
-const AVISO_ES = 'Esta llamada puede ser grabada para darte un mejor servicio.';
-const AVISO_EN = 'This call may be recorded to serve you better.';
 const NOMBRES = ['TWILIO_ACCOUNT_SID', 'TWILIO_AUTH_TOKEN', 'TWILIO_API_KEY_SID', 'TWILIO_API_KEY_SECRET',
                  'TWILIO_TWIML_APP_SID', 'TWILIO_NUMERO', 'GROQ_API_KEY'];
 const MODELOS = ['llama-3.3-70b-versatile', 'openai/gpt-oss-120b', 'llama-3.1-8b-instant'];
@@ -40,7 +39,6 @@ const esc = (s: string) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'
   .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const decirEs = (t: string) => `<Say language="es-MX" voice="Polly.Mia">${esc(t)}</Say>`;
 const decirEn = (t: string) => `<Say language="en-US" voice="Polly.Joanna">${esc(t)}</Say>`;
-const avisoBilingue = () => decirEn(AVISO_EN) + decirEs(AVISO_ES);
 
 let K: Record<string, string> = {}, kHora = 0;
 async function claves(db: SupabaseClient, fresco = false) {
@@ -111,7 +109,7 @@ async function tokenVoz(uid: string, appSid: string) {
   }));
   return cab + '.' + cuerpo + '.' + b64url(await hmac('SHA-256', K.TWILIO_API_KEY_SECRET, cab + '.' + cuerpo));
 }
-// La primera vez crea la «TwiML App» del CRM y apunta el número de Moya a esta función
+// La primera vez crea la «TwiML App» del CRM y apunta el número de Moya (voz y SMS) a esta función
 let appSid = '';
 async function configurarLinea() {
   if (K.TWILIO_TWIML_APP_SID) return K.TWILIO_TWIML_APP_SID;
@@ -127,9 +125,11 @@ async function configurarLinea() {
   const num = await twilio('IncomingPhoneNumbers.json?PhoneNumber=' +
     encodeURIComponent(e164(K.TWILIO_NUMERO) || K.TWILIO_NUMERO));
   const n = (num.incoming_phone_numbers || [])[0];
-  if (n && n.voice_url !== BASE + '?evento=entrante') {
-    await twilio(`IncomingPhoneNumbers/${n.sid}.json`, 'POST',
-      { VoiceUrl: BASE + '?evento=entrante', VoiceMethod: 'POST' });
+  if (n && (n.voice_url !== BASE + '?evento=entrante' || n.sms_url !== BASE + '?evento=sms')) {
+    await twilio(`IncomingPhoneNumbers/${n.sid}.json`, 'POST', {
+      VoiceUrl: BASE + '?evento=entrante', VoiceMethod: 'POST',
+      SmsUrl: BASE + '?evento=sms', SmsMethod: 'POST'
+    });
   }
   return appSid;
 }
@@ -164,7 +164,7 @@ async function probar(): Promise<Revision[]> {
   }
 
   // 3. El número tiene que ser de esta cuenta y aceptar voz
-  let numero = false;
+  let numero = false, sms = false;
   if (!K.TWILIO_NUMERO) falta('Número', 'el número de Twilio');
   else if (cuenta) {
     const tel = e164(K.TWILIO_NUMERO) || K.TWILIO_NUMERO;
@@ -173,6 +173,7 @@ async function probar(): Promise<Revision[]> {
     numero = !!n && n.capabilities?.voice !== false;
     r.push({ que: 'Número', ok: numero, detalle: !n ? tel + ' no está en esta cuenta de Twilio.'
       : numero ? tel : tel + ' no tiene voz.' });
+    if (n) sms = n.capabilities?.sms === true;
   }
 
   // 4. Todo bien: se crea la TwiML App y el número apunta al CRM
@@ -180,6 +181,9 @@ async function probar(): Promise<Revision[]> {
     try {
       await configurarLinea();
       r.push({ que: 'Línea del CRM', ok: true, detalle: 'Las llamadas entran y salen por el panel.' });
+      r.push({ que: 'SMS entrantes', ok: sms, detalle: sms
+        ? 'Los SMS que lleguen al número entran como mensajes del contacto.'
+        : 'Este número no acepta SMS.' });
     } catch (e) {
       r.push({ que: 'Línea del CRM', ok: false, detalle: (e as Error).message });
     }
@@ -196,16 +200,15 @@ async function probar(): Promise<Revision[]> {
   return r;
 }
 
-/* ---------- Consentimiento de grabación ----------
-   Texas es de consentimiento de una parte: basta con que Moya lo sepa.
-   Para cualquier otro estado se reproduce el aviso antes de grabar.     */
+/* ---------- Grabación ----------
+   Todas las llamadas se graban, sin aviso: Moya está en Texas, que es de
+   consentimiento de una parte. Decisión de Moya.                         */
 async function contactoPorNumero(db: SupabaseClient, numero: string) {
   const d = numero.replace(/\D/g, '').slice(-10);
   if (d.length < 10) return null;
-  const { data } = await db.from('contactos').select('id,region').eq('tel_digitos', d).limit(1);
+  const { data } = await db.from('contactos').select('id').eq('tel_digitos', d).limit(1);
   return (data || [])[0] || null;
 }
-const deTexas = (region: string | null | undefined) => /^(tx|texas)$/i.test(String(region || '').trim());
 
 /* ---------- IA: transcribir y extraer ---------- */
 const SISTEMA = `Eres el asistente interno de Moya & Company (Houston, Texas): call center, manejo de redes sociales, asistencia virtual, servicio al cliente, estructura de sistemas CRM y procedimientos operativos estándar (SOPs). Atienden a negocios en Estados Unidos, en español y en inglés.
@@ -306,34 +309,29 @@ async function twilioEvento(req: Request, db: SupabaseClient, evento: string) {
   const id = q.get('id') || '';
   const url = (ev: string, extra = '') => esc(BASE + '?evento=' + ev + (id ? '&id=' + id : '') + extra);
 
-  if (evento === 'aviso') return xml(avisoBilingue());
-
   if (evento === 'saliente') {
     const llamadaId = p.get('llamada') || '';
     const to = e164(p.get('To'));
-    const { data: l } = await db.from('llamadas').select('id,con_aviso,estado').eq('id', llamadaId).maybeSingle();
+    const { data: l } = await db.from('llamadas').select('id,estado').eq('id', llamadaId).maybeSingle();
     if (!l || !to || l.estado !== 'iniciando') return xml(decirEs('No se pudo hacer la llamada.'));
     await db.from('llamadas').update({ estado: 'sonando', proveedor_id: p.get('CallSid'), numero: to }).eq('id', l.id);
     const u = (ev: string) => esc(BASE + '?evento=' + ev + '&id=' + l.id);
-    const grabar = l.con_aviso !== null;                    // null = no grabar
     return xml(`<Dial callerId="${esc(e164(K.TWILIO_NUMERO) || K.TWILIO_NUMERO)}" answerOnBridge="true" timeout="30" action="${u('fin')}"` +
-      (grabar ? ` record="record-from-answer-dual" recordingStatusCallback="${u('grabacion')}" recordingStatusCallbackEvent="completed"` : '') + '>' +
-      `<Number statusCallbackEvent="answered" statusCallback="${u('estado')}"` +
-      (l.con_aviso ? ` url="${u('aviso')}"` : '') + `>${esc(to)}</Number></Dial>`);
+      ` record="record-from-answer-dual" recordingStatusCallback="${u('grabacion')}" recordingStatusCallbackEvent="completed">` +
+      `<Number statusCallbackEvent="answered" statusCallback="${u('estado')}">${esc(to)}</Number></Dial>`);
   }
 
   if (evento === 'entrante') {
     const desde = e164(p.get('From')) || p.get('From') || '';
     const c = await contactoPorNumero(db, desde);
-    const conAviso = !(c && deTexas(c.region));
     const { data: l } = await db.from('llamadas').insert({
       direccion: 'entrante', canal: 'telefono', numero: desde, contacto_id: c?.id || null,
-      usuario: null, estado: 'sonando', proveedor_id: p.get('CallSid'), con_aviso: conAviso
+      usuario: null, estado: 'sonando', proveedor_id: p.get('CallSid'), con_aviso: false
     }).select('id').single();
     const { data: eq } = await db.from('admins').select('user_id,rol,permisos').eq('activo', true);
     const quienes = (eq || []).filter((a) => a.rol === 'admin' || (a.permisos || []).includes('llamadas')).slice(0, 10);
     const u = (ev: string) => esc(BASE + '?evento=' + ev + '&id=' + (l?.id || ''));
-    return xml((conAviso ? avisoBilingue() : '') +
+    return xml(
       `<Dial timeout="25" answerOnBridge="true" action="${u('fin')}" record="record-from-answer-dual" recordingStatusCallback="${u('grabacion')}" recordingStatusCallbackEvent="completed">` +
       quienes.map((a) => `<Client>${identidad(a.user_id)}</Client>`).join('') + '</Dial>');
   }
@@ -365,6 +363,28 @@ async function twilioEvento(req: Request, db: SupabaseClient, evento: string) {
     return xml('');
   }
   if (evento === 'colgar') return xml('<Hangup/>');
+
+  // SMS entrante: se guarda en la ficha del contacto y no se contesta (contestar es enviar)
+  if (evento === 'sms') {
+    const desde = e164(p.get('From')) || p.get('From') || '';
+    const sid = p.get('MessageSid') || p.get('SmsSid') || '';
+    let c = await contactoPorNumero(db, desde);
+    if (!c) {
+      const { data } = await db.from('contactos')
+        .insert({ telefono: desde, origen: 'sms', estado: 'prospecto' }).select('id').single();
+      c = data;
+    }
+    const fotos = parseInt(p.get('NumMedia') || '0', 10) || 0;
+    const texto = (p.get('Body') || '').trim() +
+      (fotos ? `\n(${fotos} ${fotos === 1 ? 'archivo adjunto' : 'archivos adjuntos'}, sólo visibles en Twilio)` : '');
+    const { error } = await db.from('mensajes').insert({
+      contacto_id: c?.id || null, canal: 'sms', asunto: 'SMS de ' + desde,
+      texto: (texto.trim() || '(SMS vacío)').slice(0, 4000), proveedor_id: sid || null
+    });
+    // 23505: Twilio reintentó un SMS que ya estaba guardado
+    if (error && error.code !== '23505') return new Response('No se pudo guardar', { status: 500 });
+    return xml('');
+  }
 
   if (evento === 'grabacion') {
     const rsid = p.get('RecordingSid') || '';

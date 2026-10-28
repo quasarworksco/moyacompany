@@ -74,6 +74,7 @@ async function aplicarSesion(s) {
     t.hidden = !permisos[t.dataset.vista];
   });
   irA(VISTAS.find((v) => permisos[v]));
+  if (permisos.llamadas) iniciarLinea().catch(() => null);   // para que suenen las entrantes
 }
 
 function mostrarAcceso(mensaje) {
@@ -119,7 +120,7 @@ function irA(vista) {
   aviso('');
   if (vista === 'resumen')   cargarResumen();
   if (vista === 'metricas')  cargarMetricas();
-  if (vista === 'llamadas')  { cargarLlamadas(); comprobarLinea(); }
+  if (vista === 'llamadas')  { cargarLlamadas(); iniciarLinea().catch(() => null); }
   if (vista === 'contactos') cargarContactos();
   if (vista === 'contenido') cargarContenido();
   if (vista === 'redes')     cargarRedes();
@@ -496,15 +497,92 @@ $('btnBorrar').addEventListener('click', () => {
   inp.focus();
 });
 
+/* El SDK de voz vive en el propio sitio: Twilio no publica la versión 2 en un CDN. */
+const SDK_TWILIO = '../assets/js/vendor/twilio-voice-2.18.5.min.js';
 async function cargarSdkTwilio() {
   if (window.Twilio?.Device) return;
   await new Promise((ok, mal) => {
     const s = document.createElement('script');
-    s.src = 'https://sdk.twilio.com/js/voice/releases/2.11.2/twilio.min.js';
+    s.src = SDK_TWILIO;
     s.onload = ok; s.onerror = () => mal(new Error('No se pudo cargar el marcador.'));
     document.head.appendChild(s);
   });
 }
+
+/* La línea se abre al entrar al panel y queda registrada mientras siga
+   abierto: así suenan aquí las llamadas que entran al número de Moya. */
+let abriendo = null;
+function iniciarLinea() {
+  if (!abriendo) abriendo = abrirLinea().finally(() => { abriendo = null; });
+  return abriendo;
+}
+async function abrirLinea() {
+  const datos = await comprobarLinea();
+  if (!datos) return null;
+  await cargarSdkTwilio();
+  if (device) { device.updateToken(datos.token); return datos; }
+  device = new window.Twilio.Device(datos.token, { codecPreferences: ['opus', 'pcmu'], closeProtection: true });
+  device.on('error', (e) => { $('marcadorEstado').textContent = 'Error de la línea: ' + e.message; });
+  device.on('tokenWillExpire', () => { iniciarLinea().catch(() => null); });
+  device.on('incoming', llamadaEntrante);
+  await device.register();
+  return datos;
+}
+
+/* Una llamada, saliente o entrante, avisa en la llamada misma cuándo termina. */
+function seguirLlamada(call) {
+  conexion = call;
+  const fin = () => {
+    if (conexion !== call) return;
+    conexion = null;
+    paraLlamar = null;
+    $('marcadorEstado').textContent = 'Llamada terminada.';
+    $('btnColgar').hidden = true;
+    $('btnLlamar').hidden = false;
+    $('entrante').hidden = true;
+    setTimeout(cargarLlamadas, 4000);   // da tiempo a que Twilio avise el fin
+  };
+  call.on('accept', () => { $('marcadorEstado').textContent = 'En llamada.'; });
+  ['disconnect', 'cancel', 'reject', 'error'].forEach((ev) => call.on(ev, fin));
+}
+
+/* ---------- Llamada entrante ---------- */
+let entrante = null;
+async function llamadaEntrante(call) {
+  if (conexion) { call.ignore(); return; }   // ya en otra llamada: sigue sonando a los demás o va al buzón
+  entrante = call;
+  const desde = call.parameters?.From || '';
+  $('entranteTxt').textContent = 'Llamada entrante · ' + desde;
+  $('btnContestar').hidden = false;
+  $('btnBuzon').hidden = false;
+  $('btnColgarEntrante').hidden = true;
+  $('entrante').hidden = false;
+  const termina = () => { if (entrante === call) { entrante = null; if (conexion !== call) $('entrante').hidden = true; } };
+  ['cancel', 'disconnect', 'reject'].forEach((ev) => call.on(ev, termina));
+
+  const d = soloDigitos(desde).slice(-10);
+  if (d.length === 10 && permisos.contactos) {
+    const { data } = await sb.from('contactos').select('nombre,empresa').eq('tel_digitos', d).limit(1);
+    const c = (data || [])[0];
+    if (c?.nombre && entrante === call) {
+      $('entranteTxt').textContent = 'Llamada entrante · ' + c.nombre + (c.empresa ? ' (' + c.empresa + ')' : '') + ' · ' + desde;
+    }
+  }
+}
+
+$('btnContestar').addEventListener('click', () => {
+  if (!entrante) return;
+  const call = entrante;
+  seguirLlamada(call);
+  call.accept();
+  $('btnContestar').hidden = true;
+  $('btnBuzon').hidden = true;
+  $('btnColgarEntrante').hidden = false;
+  $('entranteTxt').textContent = $('entranteTxt').textContent.replace('Llamada entrante', 'En llamada');
+});
+// Rechazar manda la llamada al buzón de voz
+$('btnBuzon').addEventListener('click', () => { if (entrante) entrante.reject(); });
+$('btnColgarEntrante').addEventListener('click', () => { if (conexion) conexion.disconnect(); });
 
 $('btnLlamar').addEventListener('click', async () => {
   const est = $('marcadorEstado');
@@ -512,34 +590,17 @@ $('btnLlamar').addEventListener('click', async () => {
   if (!numero) { est.textContent = 'Escribe un número.'; return; }
   est.textContent = 'Preparando la línea…';
   try {
-    const datos = await comprobarLinea();
+    const datos = await iniciarLinea();
     if (!datos) { est.textContent = 'La línea no está conectada.'; return; }
-    await cargarSdkTwilio();
 
-    const modo = $('modoGrabacion').value;
-    const con_aviso = modo === 'aviso' ? true : modo === 'sin_aviso' ? false : null;
     const mismo = paraLlamar && soloDigitos(paraLlamar.numero) === soloDigitos(numero);
     const { data: fila, error } = await sb.from('llamadas')
-      .insert({ direccion: 'saliente', canal: 'telefono', numero, estado: 'iniciando', con_aviso,
+      .insert({ direccion: 'saliente', canal: 'telefono', numero, estado: 'iniciando', con_aviso: false,
                 contacto_id: mismo ? paraLlamar.id : null })
       .select('id').single();
     if (error) { est.textContent = 'No se pudo registrar la llamada: ' + error.message; return; }
 
-    if (!device) {
-      device = new window.Twilio.Device(datos.token, { codecPreferences: ['opus', 'pcmu'] });
-      device.on('error', (e) => { est.textContent = 'Error de la línea: ' + e.message; });
-      device.on('disconnect', () => {
-        est.textContent = 'Llamada terminada.';
-        conexion = null;
-        paraLlamar = null;
-        $('btnColgar').hidden = true;
-        $('btnLlamar').hidden = false;
-        setTimeout(cargarLlamadas, 4000);   // da tiempo a que Twilio avise el fin
-      });
-    } else {
-      device.updateToken(datos.token);
-    }
-    conexion = await device.connect({ params: { To: numero, llamada: fila.id } });
+    seguirLlamada(await device.connect({ params: { To: numero, llamada: fila.id } }));
     est.textContent = 'Llamando a ' + numero + '…';
     $('btnColgar').hidden = false;
     $('btnLlamar').hidden = true;
@@ -549,10 +610,8 @@ $('btnLlamar').addEventListener('click', async () => {
 });
 
 $('btnColgar').addEventListener('click', () => {
-  if (device) device.disconnectAll();
-  conexion = null;
-  $('btnColgar').hidden = true;
-  $('btnLlamar').hidden = false;
+  if (conexion) conexion.disconnect();
+  else if (device) device.disconnectAll();
 });
 
 
@@ -567,7 +626,7 @@ const P_ESTADOS = {
   nuevo: ['Nuevo', 'av'], revisado: ['Revisado', ''], entrevista: ['Entrevista', 'ia'],
   descartado: ['Descartado', 'mal'], contratado: ['Contratado', 'ok']
 };
-const C_ORIGENES = ['manual', 'formulario', 'llamada', 'referido', 'redes', 'otro'];
+const C_ORIGENES = ['manual', 'formulario', 'llamada', 'sms', 'referido', 'redes', 'otro'];
 const money = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
 const soloDigitos = (s) => String(s || '').replace(/\D/g, '');
 

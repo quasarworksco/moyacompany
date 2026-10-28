@@ -170,13 +170,27 @@ vacío deja la que había.
 Al probar, si todo está bien, la función crea sola la «TwiML App» en Twilio y apunta
 el número a sí misma. No hay que configurar webhooks a mano.
 
-### Grabación y consentimiento
+### Grabación
 
-Texas es de consentimiento de una parte, así que a un contacto con `region = 'TX'` se
-le graba sin aviso. A cualquier otro se le reproduce el aviso en inglés y español
-antes de grabar. En el marcador se puede forzar las tres opciones: con aviso, sin
-aviso o no grabar. Las llamadas de menos de 5 segundos y los buzones vacíos no se
-guardan.
+**Todas las llamadas se graban**, entrantes y salientes, y sin aviso: Moya está en
+Texas, que es de consentimiento de una parte. Ojo con quien esté en un estado que exige
+el permiso de todos (California, Florida, Washington, Illinois, Pensilvania…): ahí
+grabar sin avisar tiene riesgo legal. Las llamadas de menos de 5 segundos y los buzones
+vacíos no se guardan.
+
+### Llamadas entrantes y SMS
+
+Al entrar al panel, quien tiene permiso de llamadas queda conectado a la línea: las
+llamadas al número de Moya suenan en cualquier sección, con el nombre del contacto si
+existe. «Al buzón» la manda al buzón de voz. Si nadie contesta en 25 segundos, también.
+
+Los SMS que llegan al número entran como mensajes en la ficha del contacto (o de uno
+nuevo). Sólo se reciben: enviar SMS desde un número local exige el registro A2P 10DLC
+en Twilio.
+
+El SDK de voz de Twilio está en `assets/js/vendor/`: Twilio no publica la versión 2 en
+un CDN. Para actualizarlo: `npm pack @twilio/voice-sdk@<versión>` y copiar
+`dist/twilio.min.js`.
 
 ## Métricas
 

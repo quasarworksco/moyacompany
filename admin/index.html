@@ -68,6 +68,16 @@
     </div>
   </header>
 
+  <!-- llamada entrante: suena en cualquier sección del panel -->
+  <div class="entrante" id="entrante" role="alertdialog" aria-live="assertive" aria-labelledby="entranteTxt" hidden>
+    <p class="entrante__txt" id="entranteTxt">Llamada entrante</p>
+    <div class="entrante__btns">
+      <button class="abtn abtn--primary" type="button" id="btnContestar">Contestar</button>
+      <button class="abtn abtn--ghost" type="button" id="btnBuzon">Al buzón</button>
+      <button class="abtn abtn--peligro" type="button" id="btnColgarEntrante" hidden>Colgar</button>
+    </div>
+  </div>
+
   <main class="wrap main">
     <div class="notice" id="notice" hidden></div>
 
@@ -169,14 +179,7 @@
               <button class="tecla" type="button" data-d="#"><b>#</b><span>&nbsp;</span></button>
             </div>
 
-            <label class="afield">
-              <span>Grabación</span>
-              <select id="modoGrabacion">
-                <option value="aviso">Grabar con aviso</option>
-                <option value="sin_aviso">Grabar sin aviso (Texas)</option>
-                <option value="no">No grabar</option>
-              </select>
-            </label>
+            <p class="marcador__nota">Todas las llamadas se graban.</p>
 
             <div class="marcador__btns">
               <button class="abtn abtn--primary abtn--block" type="button" id="btnLlamar">Marcar</button>
