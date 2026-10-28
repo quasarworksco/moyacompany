@@ -178,6 +178,19 @@ el permiso de todos (California, Florida, Washington, Illinois, Pensilvania…):
 grabar sin avisar tiene riesgo legal. Las llamadas de menos de 5 segundos y los buzones
 vacíos no se guardan.
 
+### El panel en el celular
+
+En pantallas de teléfono el panel funciona como una app:
+
+- Barra de secciones abajo con íconos (Inicio, Llamadas, Contactos, Contenido y
+  **Más**, que abre Métricas, Redes, Ajustes y Salir).
+- El detalle de una llamada, un SMS, un contacto o un diseño se abre a pantalla
+  completa con «Volver»; el botón atrás del teléfono también lo cierra.
+- Llamadas como el teléfono: **Teclado** o **Recientes** (llamadas y SMS).
+- Se instala en la pantalla de inicio (`admin/manifest.webmanifest`, íconos en
+  `assets/img/app/`): en Android, menú ⋮ → «Instalar app»; en iPhone, Safari →
+  Compartir → «Agregar a inicio». Abre a pantalla completa, sin barra del navegador.
+
 ### Llamadas entrantes y SMS
 
 Al entrar al panel, quien tiene permiso de llamadas queda conectado a la línea: las
