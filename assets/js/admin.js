@@ -286,10 +286,10 @@ async function cargarLlamadas() {
   const { data, error } = await sb.from('llamadas')
     .select('*, contactos(nombre,empresa)').order('created_at', { ascending: false }).limit(100);
   if (error) { ul.innerHTML = ''; return aviso('<b>No se pudieron cargar las llamadas.</b> ' + escapar(error.message), 'error'); }
-  llamadas = data || [];
+  llamadas = (data || []).filter((l) => !enEspera.has(l.id));
   pintarLista();
 }
-$('recargarLlamadas').addEventListener('click', cargarLlamadas);
+$('recargarLlamadas').addEventListener('click', () => { cargarLlamadas(); cargarSms(); });
 $('filtroLlamadas').addEventListener('change', pintarLista);
 
 function pintarLista() {
@@ -341,11 +341,13 @@ async function verLlamada(id) {
       </div>
       <span class="pill pill--${(ESTADOS[l.estado] || ['', 'av'])[1]}">${(ESTADOS[l.estado] || [l.estado])[0]}</span>
     </header>
-    ${permisos.contactos ? `<div class="det__acciones det__acciones--fila">
-      ${l.contacto_id
+    <div class="det__acciones det__acciones--fila">
+      ${permisos.contactos ? (l.contacto_id
         ? '<button class="abtn abtn--ghost abtn--sm" type="button" id="verFicha">Ver su ficha</button>'
-        : (l.numero ? '<button class="abtn abtn--primary abtn--sm" type="button" id="crearDeLlamada">Crear contacto con este número</button>' : '')}
-    </div>` : ''}
+        : (l.numero ? '<button class="abtn abtn--primary abtn--sm" type="button" id="crearDeLlamada">Crear contacto con este número</button>' : '')) : ''}
+      ${['iniciando', 'sonando', 'en_curso'].includes(l.estado) ? ''
+        : '<button class="abtn abtn--ghost abtn--sm det__eliminar" type="button" id="llamadaEliminar">Eliminar</button>'}
+    </div>
     <div class="det__audio" id="detAudio">${l.grabacion_path ? 'Cargando grabación…' : '<p class="det__nada">Esta llamada no tiene grabación.</p>'}</div>
     <div class="det__ia">
       <div class="det__iahead">
@@ -370,6 +372,7 @@ async function verLlamada(id) {
           ${permisos.contactos ? `<button class="abtn abtn--ghost abtn--sm" type="button" data-tarea="${i}">Guardar</button>` : ''}</li>`).join('') + '</ul>' : '')}
       ${bloque('Transcripción', l.transcripcion ? `<details class="det__trans"><summary>Ver transcripción completa</summary><p>${escapar(l.transcripcion)}</p></details>` : '')}
     </div>`;
+  alDetalle();
 
   if (l.grabacion_path) {
     const { data, error } = await sb.storage.from('llamadas').createSignedUrl(l.grabacion_path, 3600);
@@ -385,6 +388,8 @@ async function verLlamada(id) {
 
   const crear = $('crearDeLlamada');
   if (crear) crear.addEventListener('click', () => contactoDesdeLlamada(l, crear));
+  const quitar = $('llamadaEliminar');
+  if (quitar) quitar.addEventListener('click', () => eliminarLlamada(l));
 
   // Las tareas que saca la IA no sirven de nada si sólo se leen.
   det.querySelectorAll('[data-tarea]').forEach((b) =>
@@ -667,14 +672,14 @@ async function cargarSms(callado = false) {
     .select('id,created_at,asunto,texto,leido,contacto_id,contactos(nombre,empresa,telefono)')
     .eq('canal', 'sms').order('created_at', { ascending: false }).limit(100);
   if (error) { if (!callado) ul.innerHTML = '<li class="lista__vacio">No se pudieron cargar los SMS.</li>'; return; }
-  smsLista = data || [];
+  smsLista = (data || []).filter((m) => !enEspera.has(m.id));
   pintarSms();
 }
 
 function pintarSms() {
   const ul = $('listaSms');
   const nuevos = smsLista.filter((m) => !m.leido).length;
-  $('smsNuevos').textContent = nuevos + (nuevos === 1 ? ' nuevo' : ' nuevos');
+  $('smsNuevos').textContent = nuevos;
   $('smsNuevos').hidden = !nuevos;
   if (!smsLista.length) {
     ul.innerHTML = '<li class="lista__vacio">Todavía no llegan SMS al número de Moya.</li>';
@@ -708,6 +713,7 @@ async function verSms(id) {
     <div class="det__acciones det__acciones--fila">
       <button class="abtn abtn--primary abtn--sm" type="button" id="smsLlamar">Llamar</button>
       ${permisos.contactos && m.contacto_id ? '<button class="abtn abtn--ghost abtn--sm" type="button" id="smsFicha">Ver su ficha</button>' : ''}
+      <button class="abtn abtn--ghost abtn--sm det__eliminar" type="button" id="smsEliminar">Eliminar</button>
     </div>
     <p class="sms__texto">${escapar(m.texto)}</p>`;
 
@@ -719,6 +725,8 @@ async function verSms(id) {
   });
   const ficha = $('smsFicha');
   if (ficha) ficha.addEventListener('click', () => { irA('contactos'); setTimeout(() => verContacto(m.contacto_id), 250); });
+  $('smsEliminar').addEventListener('click', () => eliminarSms(m));
+  alDetalle();
 
   if (!m.leido) {
     m.leido = true;
@@ -727,7 +735,96 @@ async function verSms(id) {
   }
 }
 
-$('recargarSms').addEventListener('click', () => cargarSms());
+
+/* ---------- Bandeja: llamadas y SMS en pestañas ---------- */
+function verBandeja(cual) {
+  document.querySelectorAll('#segBandeja .segmento').forEach((b) => {
+    const on = b.dataset.bandeja === cual;
+    b.classList.toggle('is-on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+  $('listaLlamadas').hidden = cual !== 'llamadas';
+  $('filtroLlamadas').hidden = cual !== 'llamadas';
+  $('listaSms').hidden = cual !== 'sms';
+}
+$('segBandeja').addEventListener('click', (e) => {
+  const b = e.target.closest('.segmento');
+  if (b) verBandeja(b.dataset.bandeja);
+});
+// En tablet y móvil el detalle queda debajo de la lista: se lleva la vista hasta él.
+const alDetalle = () => {
+  if (matchMedia('(max-width:1000px)').matches) $('detalle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+};
+
+/* ---------- Eliminar con deshacer ----------
+   Lo eliminado sale de la lista en el acto, pero se borra de verdad cuando
+   acaba la cuenta. Si se elimina otra cosa antes, la anterior se confirma. */
+const DESHACER_SEG = 6;
+let pendiente = null;
+const enEspera = new Set();   // ids que esperan la cuenta: al recargar no reaparecen
+function eliminarConDeshacer(texto, quitar, restaurar, borrar) {
+  confirmarPendiente();
+  quitar();
+  let quedan = DESHACER_SEG;
+  $('deshacerTxt').textContent = texto;
+  $('deshacerSeg').textContent = quedan;
+  $('deshacer').hidden = false;
+  const p = { restaurar, borrar };
+  p.tic = setInterval(() => {
+    quedan -= 1;
+    $('deshacerSeg').textContent = quedan;
+    if (quedan <= 0) confirmarPendiente();
+  }, 1000);
+  pendiente = p;
+}
+async function confirmarPendiente() {
+  const p = pendiente;
+  if (!p) return;
+  pendiente = null;
+  clearInterval(p.tic);
+  $('deshacer').hidden = true;
+  try { await p.borrar(); }
+  catch (e) { p.restaurar(); aviso('<b>No se pudo eliminar.</b> ' + escapar(e.message), 'error'); }
+}
+$('btnDeshacer').addEventListener('click', () => {
+  const p = pendiente;
+  if (!p) return;
+  pendiente = null;
+  clearInterval(p.tic);
+  $('deshacer').hidden = true;
+  p.restaurar();
+});
+// Si se cierra el panel durante la cuenta, lo eliminado se borra igual.
+window.addEventListener('pagehide', () => { confirmarPendiente(); });
+
+const detalleVacio = () => {
+  $('detalle').innerHTML = '<p class="detalle__vacio">Elige una llamada o un SMS para ver el detalle.</p>';
+};
+// delete() sin filas no da error cuando la base no lo permite: se comprueba
+async function borrarFila(tabla, id) {
+  const { data, error } = await sb.from(tabla).delete().eq('id', id).select('id');
+  if (error) throw error;
+  if (!data?.length) throw new Error('No tienes permiso para eliminarlo.');
+}
+
+function eliminarLlamada(l) {
+  const i = llamadas.indexOf(l);
+  eliminarConDeshacer('Llamada eliminada',
+    () => { enEspera.add(l.id); llamadas.splice(i, 1); if (elegida === l.id) { elegida = null; detalleVacio(); } pintarLista(); },
+    () => { enEspera.delete(l.id); if (!llamadas.includes(l)) llamadas.splice(Math.min(i, llamadas.length), 0, l); pintarLista(); },
+    async () => {
+      await borrarFila('llamadas', l.id);
+      enEspera.delete(l.id);
+      if (l.grabacion_path) await sb.storage.from('llamadas').remove([l.grabacion_path]);
+    });
+}
+function eliminarSms(m) {
+  const i = smsLista.indexOf(m);
+  eliminarConDeshacer('SMS eliminado',
+    () => { enEspera.add(m.id); smsLista.splice(i, 1); if (smsElegido === m.id) { smsElegido = null; detalleVacio(); } pintarSms(); },
+    () => { enEspera.delete(m.id); if (!smsLista.includes(m)) smsLista.splice(Math.min(i, smsLista.length), 0, m); pintarSms(); },
+    async () => { await borrarFila('mensajes', m.id); enEspera.delete(m.id); });
+}
 // Mientras la sección Llamadas esté abierta, los SMS nuevos aparecen solos.
 setInterval(() => { if (!$('vista-llamadas').hidden && permisos.llamadas) cargarSms(true); }, 30000);
 

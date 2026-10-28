@@ -218,8 +218,36 @@ button,input{font:inherit;color:inherit}
 .marcador__estado{margin:0;font-size:.85rem;color:var(--ink-dim);min-height:1.2em}
 
 /* ---------- llamadas ---------- */
-.llamadas{display:grid;grid-template-columns:minmax(0,22rem) minmax(0,1fr);gap:1.1rem;align-items:start}
-.llamadas__col{display:grid;gap:1.1rem;align-content:start}
+/* Llamadas en tres columnas: marcador | bandeja | detalle. El marcador y el
+   detalle se quedan quietos; la bandeja usa todo el alto de la pantalla. */
+.llamadas{display:grid;gap:1.1rem;align-items:start;
+  grid-template-columns:minmax(0,17.5rem) minmax(0,21rem) minmax(0,1fr);
+  grid-template-areas:"marc band det"}
+.llamadas > .marcador{grid-area:marc;position:sticky;top:5.5rem}
+.llamadas > .bandeja{grid-area:band}
+.llamadas > .detalle{grid-area:det;position:sticky;top:5.5rem;
+  max-height:calc(100vh - 7rem);overflow:auto}
+.bandeja{display:grid;gap:.9rem;padding:1.1rem}
+.bandeja__head{display:flex;align-items:center;justify-content:space-between;gap:.6rem;flex-wrap:wrap}
+.lista.bandeja__lista{max-height:calc(100vh - 13rem);min-height:16rem}
+.marcador{gap:.8rem;padding:1.2rem}
+.marcador .tecla{padding:.45rem 0}
+
+@media (max-width:1100px){
+  .llamadas{grid-template-columns:minmax(0,15rem) minmax(0,18rem) minmax(0,1fr)}
+  .marcador__pantalla input{font-size:1.1rem;padding-right:2.6rem}
+}
+@media (max-width:1000px){ .marcador__pantalla input{font-size:1.35rem} }
+/* tablet: marcador y bandeja lado a lado, el detalle debajo a lo ancho */
+@media (max-width:1000px){
+  .llamadas{grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"marc band" "det det"}
+  .llamadas > .marcador,.llamadas > .detalle{position:static;max-height:none}
+  .lista.bandeja__lista{max-height:30rem}
+}
+@media (max-width:700px){
+  .llamadas{grid-template-columns:1fr;grid-template-areas:"marc" "band" "det"}
+  .lista.bandeja__lista{max-height:24rem;min-height:0}
+}
 .filtro{padding:.4rem .7rem;border-radius:99px;border:1px solid var(--line);background:#fff;
   font-size:.8rem;color:var(--ink-dim);cursor:pointer}
 
@@ -268,7 +296,6 @@ button,input{font:inherit;color:inherit}
 .det__trans p{margin:.7rem 0 0;white-space:pre-wrap;font-size:.88rem;line-height:1.7}
 
 @media (max-width:900px){
-  .llamadas{grid-template-columns:1fr}
   .lista{max-height:22rem}
   /* Con cuatro secciones la fila ya no cabe en un móvil: que ruede la tira
      de pestañas, no la página entera. */
@@ -558,3 +585,14 @@ body:has(.enllamada:not([hidden])) .main{padding-bottom:8rem}
 .sms__texto{margin:0;padding:1rem 1.1rem;border-radius:16px;background:#f4f7ff;border:1px solid var(--line);
   font-size:.95rem;line-height:1.6;color:var(--navy);white-space:pre-wrap;overflow-wrap:anywhere}
 .marcador__nota{margin:0;font-size:.78rem;color:var(--ink-soft);text-align:center}
+
+/* ---------- deshacer ---------- */
+.deshacer{position:fixed;top:5.2rem;left:50%;z-index:45;transform:translateX(-50%);
+  display:flex;align-items:center;gap:.9rem;padding:.65rem .7rem .65rem 1.1rem;border-radius:99px;
+  background:var(--navy);color:#fff;font-size:.88rem;box-shadow:0 18px 36px -18px rgba(9,30,110,.8);
+  max-width:calc(100% - 32px)}
+.deshacer[hidden]{display:none}
+.deshacer__btn{padding:.4rem .9rem;border:0;border-radius:99px;cursor:pointer;font:inherit;font-weight:700;
+  color:var(--navy);background:#fff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.deshacer__btn:hover{background:var(--blue-100)}
+.det__eliminar{margin-left:auto}
