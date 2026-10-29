@@ -112,26 +112,31 @@ portero anterior, aquí el permiso lo decide la base de datos: cada consulta pas
 `puede(modulo)`, que exige una fila activa en `admins`. El navegador no decide nada —
 aunque alguien edite el JavaScript, la base le sigue negando los datos.
 
-### Dar de alta a alguien
+### Equipo: usuarios, permisos y contraseñas
 
-1. En Supabase → **Authentication → Users → Add user**, con su correo y contraseña
-   (marca «Auto Confirm User»).
-2. En el **SQL Editor**:
+Todo se administra desde la **cuenta principal** (veronica@moyacompanytx.com), en la
+pestaña **Equipo** (en el móvil, dentro de «Más»). Sólo ella ve Equipo y Ajustes.
 
-   ```sql
-   select public.alta_admin('correo@moyacompanytx.com', 'Nombre Apellido');
-   ```
+- **Nuevo miembro:** nombre, **usuario** (`maria`) o un correo, contraseña (sale una
+  generada), rol, módulos que puede ver, su número de Twilio y, si hace falta, una
+  fecha en que se le acaba el acceso. Al crearlo, el panel enseña los datos para
+  pasárselos (botón «Copiar»).
+- **Rol:** *agente* ve sólo los módulos marcados; *administrador* ve todos los módulos
+  de trabajo, pero no Equipo ni Ajustes.
+- **Contraseñas:** desde la ficha de cada miembro se le pone una nueva. Si se marca
+  «Que la cambie al entrar», la primera vez el panel le pide una suya. Cada quien
+  puede cambiar la suya en «Mi contraseña».
+- **Su número:** sus llamadas salen con ese número y las que entran a él le suenan
+  sólo a esa persona; al número principal de Moya le suena a todos los que atienden
+  llamadas. Los SMS a su número llegan marcados con su línea.
+- **Quitar acceso:** desmarcar «Con acceso al panel» (se puede devolver) o «Eliminar
+  miembro» (borra su cuenta; sus llamadas se quedan en el CRM).
+- La cuenta principal no se puede desactivar, degradar ni eliminar.
 
-   Eso le da rol `admin`, que ve todos los módulos.
-
-Para un acceso limitado, en vez de `alta_admin` inserta la fila a mano con los módulos
-que deba ver:
-
-```sql
-insert into public.admins (user_id, email, nombre, rol, permisos)
-select id, email, 'Nombre', 'agente', array['llamadas']
-from auth.users where email = 'agente@moyacompanytx.com';
-```
+Quien entra con usuario tiene la cuenta `usuario@equipo.moyacompany.com` por debajo:
+sirve para entrar pero no recibe correos, así que «Olvidé mi contraseña» le dice que
+pida una nueva a la administradora. La función `equipo` es la única que crea cuentas
+y pone contraseñas, y sólo responde a la cuenta principal (migración `0011`).
 
 Módulos disponibles: `metricas`, `llamadas`, `contactos`, `admins`.
 

@@ -16,7 +16,12 @@ const nf = new Intl.NumberFormat('es-MX');
 /* Los módulos son los que la base conoce en puede(); 'resumen' no es un
    módulo: es la portada, y enseña sólo lo que cada módulo permita. */
 const MODULOS = ['metricas', 'llamadas', 'contactos', 'contenido'];
-const VISTAS = ['resumen', ...MODULOS, 'redes', 'ajustes'];
+const VISTAS = ['resumen', ...MODULOS, 'redes', 'ajustes', 'equipo'];
+/* Quien entra con usuario (sin @) tiene la cuenta usuario@equipo.moyacompany.com,
+   la misma que crea la función «equipo». */
+const DOMINIO_EQUIPO = 'equipo.moyacompany.com';
+const correoDeUsuario = (u) => { const t = u.trim().toLowerCase(); return t.includes('@') ? t : t + '@' + DOMINIO_EQUIPO; };
+const usuarioDeCorreo = (e) => String(e || '').replace('@' + DOMINIO_EQUIPO, '');
 const permisos = { metricas: false, llamadas: false, contactos: false, contenido: false };
 let sesion = null;
 
@@ -53,10 +58,12 @@ async function aplicarSesion(s) {
   if (!s) return mostrarAcceso();
 
   // La base decide: si no hay fila en admins, puede() devuelve false para todo.
-  const [respuestas, admin] = await Promise.all([
-    Promise.all(MODULOS.map((m) => sb.rpc('puede', { modulo: m }))), sb.rpc('es_admin')]);
+  const [respuestas, principal, yo] = await Promise.all([
+    Promise.all(MODULOS.map((m) => sb.rpc('puede', { modulo: m }))), sb.rpc('es_principal'),
+    sb.from('admins').select('nombre,debe_cambiar').eq('user_id', s.user.id).maybeSingle()]);
   MODULOS.forEach((m, i) => { permisos[m] = respuestas[i].data === true; });
-  permisos.ajustes = admin.data === true;   // las claves sólo las toca el rol admin
+  // Equipo y Ajustes (claves) sólo los administra la cuenta principal
+  permisos.ajustes = permisos.equipo = principal.data === true;
   permisos.resumen = MODULOS.some((m) => permisos[m]);
   permisos.redes = permisos.contenido;   // las redes cuelgan del módulo de contenido
 
@@ -68,15 +75,57 @@ async function aplicarSesion(s) {
   $('cargando').hidden = true;
   $('gate').hidden = true;
   $('app').hidden = false;
-  $('quien').textContent = s.user.email;
-  $('quienMovil').textContent = s.user.email;
+  const nombre = yo.data?.nombre || usuarioDeCorreo(s.user.email);
+  $('quien').textContent = nombre;
+  $('quienMovil').textContent = nombre + ' · ' + usuarioDeCorreo(s.user.email);
 
   document.querySelectorAll('.tab[data-vista], .mas__item[data-vista]').forEach((t) => {
     t.hidden = !permisos[t.dataset.vista];
   });
   irA(VISTAS.find((v) => permisos[v]));
   if (permisos.llamadas) iniciarLinea().catch(() => null);   // para que suenen las entrantes
+  if (yo.data?.debe_cambiar) abrirClave(true);   // la contraseña se la puso la administradora
 }
+
+/* ---------- 1b. Mi contraseña ----------
+   Obligatoria cuando la puso la administradora (debe_cambiar); si no, se
+   abre desde «Mi contraseña» y se puede cancelar. */
+function abrirClave(obligatoria) {
+  $('claveTitulo').textContent = obligatoria ? 'Elige tu contraseña' : 'Cambiar mi contraseña';
+  $('claveSub').textContent = obligatoria
+    ? 'La contraseña que tienes te la dieron para entrar la primera vez. Pon una tuya para seguir.'
+    : 'Mínimo 8 caracteres.';
+  $('claveCerrar').hidden = obligatoria;
+  $('claveError').hidden = true;
+  $('claveNueva').value = $('claveOtra').value = '';
+  $('clave').hidden = false;
+  cerrarMas();
+  $('claveNueva').focus();
+}
+$('miContrasena').addEventListener('click', () => { $('cuenta').open = false; abrirClave(false); });
+// El menú de la cuenta se cierra al tocar fuera
+document.addEventListener('click', (e) => { if (!e.target.closest('#cuenta')) $('cuenta').open = false; });
+$('miContrasenaMovil').addEventListener('click', () => abrirClave(false));
+$('claveCerrar').addEventListener('click', () => { $('clave').hidden = true; });
+$('claveForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = $('claveError'), btn = $('claveBtn');
+  const nueva = $('claveNueva').value;
+  err.hidden = true;
+  if (nueva.length < 8) { err.textContent = 'Necesita al menos 8 caracteres.'; err.hidden = false; return; }
+  if (nueva !== $('claveOtra').value) { err.textContent = 'Las dos no coinciden.'; err.hidden = false; return; }
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  const { error } = await sb.auth.updateUser({ password: nueva });
+  btn.disabled = false; btn.textContent = 'Guardar contraseña';
+  if (error) {
+    err.textContent = /different/i.test(error.message) ? 'Tiene que ser distinta de la que tenías.' : error.message;
+    err.hidden = false;
+    return;
+  }
+  await sb.rpc('ya_cambie_contrasena');
+  $('clave').hidden = true;
+  aviso('Tu contraseña quedó cambiada.');
+});
 
 function mostrarAcceso(mensaje) {
   $('cargando').hidden = true;
@@ -90,12 +139,12 @@ $('loginForm').addEventListener('submit', async (e) => {
   const err = $('loginError'), btn = $('loginBtn');
   err.hidden = true; btn.disabled = true; btn.textContent = 'Entrando…';
   const { data, error } = await sb.auth.signInWithPassword({
-    email: $('email').value.trim(), password: $('pass').value
+    email: correoDeUsuario($('email').value), password: $('pass').value
   });
   btn.disabled = false; btn.textContent = 'Entrar';
   if (error) {
     err.textContent = /invalid login/i.test(error.message)
-      ? 'Correo o contraseña incorrectos.' : error.message;
+      ? 'Usuario o contraseña incorrectos.' : error.message;
     err.hidden = false;
     return;
   }
@@ -107,6 +156,12 @@ $('olvide').addEventListener('click', async () => {
   const correo = $('email').value.trim();
   const err = $('loginError');
   if (!correo) { err.textContent = 'Escribe tu correo y vuelve a tocar.'; err.hidden = false; return; }
+  // Las cuentas con usuario no tienen correo: la contraseña nueva se la pone la administradora
+  if (!correo.includes('@')) {
+    err.textContent = 'Pídele a la administradora que te ponga una contraseña nueva desde Equipo.';
+    err.hidden = false;
+    return;
+  }
   await sb.auth.resetPasswordForEmail(correo, { redirectTo: location.href });
   err.textContent = 'Si el correo existe, te llegará un enlace para cambiar la contraseña.';
   err.hidden = false;
@@ -117,7 +172,7 @@ $('logout').addEventListener('click', salir);
 $('logoutMovil').addEventListener('click', salir);
 
 /* ---------- 2. Navegación ---------- */
-const EXTRAS = ['metricas', 'redes', 'ajustes'];   // en el móvil van en «Más»
+const EXTRAS = ['metricas', 'redes', 'ajustes', 'equipo'];   // en el móvil van en «Más»
 function irA(vista) {
   cerrarHoja();
   cerrarMas();
@@ -133,6 +188,7 @@ function irA(vista) {
   if (vista === 'contenido') cargarContenido();
   if (vista === 'redes')     cargarRedes();
   if (vista === 'ajustes')   cargarAjustes();
+  if (vista === 'equipo')    cargarEquipo();
 }
 $('tabs').addEventListener('click', (e) => {
   const t = e.target.closest('.tab');
@@ -161,7 +217,7 @@ $('menuMas').addEventListener('click', (e) => {
   if (item) irA(item.dataset.vista);
 });
 
-const HOJAS = ['detalle', 'fichaContacto', 'fichaContenido'];
+const HOJAS = ['detalle', 'fichaContacto', 'fichaContenido', 'fichaMiembro'];
 let hojaEnHistoria = false;
 function abrirHoja(el) {
   HOJAS.forEach((id) => { if ($(id) !== el) $(id).classList.remove('is-abierta'); });
@@ -736,7 +792,8 @@ $('btnColgar').addEventListener('click', () => {
    Llegan al número de Moya y la función los guarda como mensajes del
    contacto. Aquí se leen, se marcan como leídos y se devuelve la llamada. */
 let smsLista = [], smsElegido = null;
-const numeroDeSms = (m) => m.contactos?.telefono || String(m.asunto || '').replace(/^SMS de\s*/, '');
+const numeroDeSms = (m) => m.contactos?.telefono || String(m.asunto || '').replace(/^SMS de\s*/, '').split(' · ')[0];
+const lineaDeSms = (m) => (String(m.asunto || '').split(' · ')[1] || '');
 
 async function cargarSms(callado = false) {
   const ul = $('listaSms');
@@ -778,6 +835,7 @@ async function verSms(id) {
       <div>
         <h2 class="det__titulo">${escapar(m.contactos?.nombre || numero)}</h2>
         <p class="det__sub">SMS · ${fechaCorta(m.created_at)} · ${escapar(numero)}
+           ${lineaDeSms(m) ? ' · ' + escapar(lineaDeSms(m)) : ''}
            ${m.contactos?.empresa ? ' · ' + escapar(m.contactos.empresa) : ''}</p>
       </div>
       <span class="pill pill--ia">SMS</span>
@@ -2079,5 +2137,236 @@ $('formAjustes').addEventListener('submit', async (e) => {
   await cargarAjustes();
   await probarAjustes();
 });
+
+/* =========================================================
+   11. Equipo — miembros, permisos, contraseñas y su número
+   Sólo la cuenta principal. Todo pasa por la función «equipo»: es la
+   única que puede crear cuentas de acceso y poner contraseñas.
+   ========================================================= */
+const MOD_NOMBRES = { llamadas: 'Llamadas y SMS', contactos: 'Contactos', contenido: 'Contenido y Redes', metricas: 'Métricas' };
+let equipo = { miembros: [], numeros: null }, miembroElegido = null;
+
+async function llamarEquipo(cuerpo) {
+  const { data, error } = await sb.functions.invoke('equipo', { body: cuerpo });
+  if (error || data?.error) throw new Error(await motivo(error, data));
+  return data;
+}
+
+async function cargarEquipo() {
+  const ul = $('listaEquipo');
+  ul.innerHTML = '<li class="lista__cargando">Cargando…</li>';
+  try { equipo = await llamarEquipo({ accion: 'listar' }); }
+  catch (e) { ul.innerHTML = `<li class="lista__vacio">${escapar(e.message)}</li>`; return; }
+  const activos = equipo.miembros.filter((m) => m.activo).length;
+  $('equipoResumen').textContent = `${equipo.miembros.length} ${equipo.miembros.length === 1 ? 'persona' : 'personas'} · ${activos} con acceso`;
+  pintarEquipo();
+  if (miembroElegido) {
+    const m = equipo.miembros.find((x) => x.user_id === miembroElegido);
+    if (m) fichaMiembro(m);
+  }
+}
+
+const rolDe = (m) => m.principal ? ['Principal', 'ia'] : m.rol === 'admin' ? ['Administrador', 'ok'] : ['Agente', 'av'];
+function pintarEquipo() {
+  const ul = $('listaEquipo');
+  ul.innerHTML = equipo.miembros.map((m) => {
+    const [rol, cl] = rolDe(m);
+    const vencido = m.acceso_hasta && m.acceso_hasta < hoyISO();
+    return `<li><button class="fila ${miembroElegido === m.user_id ? 'is-on' : ''}" type="button" data-id="${m.user_id}">
+      <span class="avatar" aria-hidden="true">${escapar(inicial(m.nombre || m.usuario))}</span>
+      <span class="fila__cuerpo">
+        <span class="fila__top"><b>${escapar(m.nombre || m.usuario)}</b><span class="fila__hora">${escapar(m.usuario)}</span></span>
+        <span class="fila__bajo">
+          <span class="pill pill--${cl}">${rol}</span>
+          ${!m.activo ? '<span class="pill pill--mal">Sin acceso</span>' : vencido ? '<span class="pill pill--mal">Venció</span>' : ''}
+          ${m.numero ? `<span>${escapar(m.numero)}</span>` : ''}
+        </span>
+      </span></button></li>`;
+  }).join('') || '<li class="lista__vacio">Todavía no hay nadie.</li>';
+  ul.querySelectorAll('.fila').forEach((b) => b.addEventListener('click', () => {
+    miembroElegido = b.dataset.id;
+    pintarEquipo();
+    fichaMiembro(equipo.miembros.find((m) => m.user_id === b.dataset.id));
+  }));
+}
+
+// Contraseña al azar, sin letras que se confundan (l, 1, O, 0)
+function generarClave() {
+  const letras = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const r = crypto.getRandomValues(new Uint32Array(12));
+  return [...r].map((n) => letras[n % letras.length]).join('');
+}
+
+function opcionesNumero(actual) {
+  if (!equipo.numeros) return null;
+  return `<option value="">Sin número propio (usa el de Moya)</option>` + equipo.numeros.map((n) => {
+    const ocupado = n.asignado_a && n.numero !== actual;
+    return `<option value="${escapar(n.numero)}" ${n.numero === actual ? 'selected' : ''} ${ocupado ? 'disabled' : ''}>
+      ${escapar(n.numero)}${n.nombre && n.nombre !== n.numero ? ' · ' + escapar(n.nombre) : ''}${ocupado ? ' · de ' + escapar(n.asignado_a) : ''}${n.voz ? '' : ' · sin voz'}</option>`;
+  }).join('');
+}
+
+function fichaMiembro(m) {
+  const nuevo = !m;
+  m = m || { rol: 'agente', permisos: ['llamadas'], activo: true };
+  const yo = sesion?.user?.id === m.user_id;
+  const fijo = !!m.principal;                     // la cuenta principal no pierde nada
+  const opsNum = opcionesNumero(m.numero || '');
+  const ultimo = nuevo ? '' : m.ultimo_acceso ? 'Entró por última vez ' + fechaCorta(m.ultimo_acceso) : 'Todavía no ha entrado';
+
+  $('fichaMiembro').innerHTML = `
+    <form class="ficha" id="formMiembro" novalidate>
+      <header class="det__head">
+        <div>
+          <h2 class="det__titulo">${nuevo ? 'Nuevo miembro' : escapar(m.nombre || m.usuario)}</h2>
+          <p class="det__sub">${nuevo ? 'Entrará al panel con su usuario y la contraseña que le pongas.'
+            : 'Usuario: <b>' + escapar(m.usuario) + '</b> · ' + ultimo}</p>
+        </div>
+        ${nuevo ? '' : `<span class="pill pill--${rolDe(m)[1]}">${rolDe(m)[0]}</span>`}
+      </header>
+
+      <div class="ficha__rejilla">
+        <label class="afield ficha__ancho"><span>Nombre</span>
+          <input id="mNombre" required value="${escapar(m.nombre || '')}" placeholder="Nombre y apellido" /></label>
+        ${nuevo ? `
+        <label class="afield"><span>Usuario o correo</span>
+          <input id="mUsuario" autocapitalize="none" spellcheck="false" autocomplete="off" placeholder="maria  ó  maria@correo.com" /></label>
+        <label class="afield"><span>Contraseña para entrar</span>
+          <span class="clave__fila"><input id="mClave" autocomplete="new-password" spellcheck="false" value="${generarClave()}" />
+          <button class="abtn abtn--ghost abtn--sm" type="button" data-generar="mClave">Otra</button></span></label>` : ''}
+        <label class="afield"><span>Rol</span>
+          <select id="mRol" ${fijo || yo ? 'disabled' : ''}>
+            <option value="agente" ${m.rol === 'agente' ? 'selected' : ''}>Agente (lo que marques)</option>
+            <option value="admin" ${m.rol === 'admin' ? 'selected' : ''}>Administrador (todo)</option>
+          </select></label>
+        <label class="afield"><span>Su número de Twilio</span>
+          ${opsNum !== null ? `<select id="mNumero">${opsNum}</select>`
+            : `<input id="mNumero" type="tel" value="${escapar(m.numero || '')}" placeholder="+1 713 000 0000" />`}</label>
+        <fieldset class="afield ficha__ancho casillas" id="mModulos" ${fijo || yo ? 'disabled' : ''}>
+          <span>Qué puede ver</span>
+          <div class="casillas__lista">
+            ${MODULOS.map((k) => `<label class="casilla"><input type="checkbox" value="${k}"
+              ${m.rol === 'admin' || (m.permisos || []).includes(k) ? 'checked' : ''} /> ${MOD_NOMBRES[k]}</label>`).join('')}
+          </div>
+        </fieldset>
+        <label class="afield"><span>Acceso hasta (opcional)</span>
+          <input id="mVence" type="date" value="${escapar(m.acceso_hasta || '')}" ${fijo || yo ? 'disabled' : ''} /></label>
+        ${nuevo ? `<label class="casilla casilla--sola"><input type="checkbox" id="mDebe" checked /> Que cambie la contraseña al entrar</label>`
+          : fijo || yo ? '' : `<label class="casilla casilla--sola"><input type="checkbox" id="mActivo" ${m.activo ? 'checked' : ''} /> Con acceso al panel</label>`}
+      </div>
+      ${opsNum === null ? '<p class="ficha__nota">Para elegir de los números de la cuenta, conecta Twilio en Ajustes.</p>' : ''}
+      ${fijo ? '<p class="ficha__nota">Es la cuenta principal: no se le puede quitar el rol, el acceso ni borrarla.</p>' : ''}
+
+      <p class="ficha__estado" id="mMsg"></p>
+      <div class="ficha__botones">
+        <button class="abtn abtn--primary" type="submit" id="mGuardar">${nuevo ? 'Crear miembro' : 'Guardar cambios'}</button>
+        ${nuevo ? '<button class="abtn abtn--ghost" type="button" id="mCancelar">Cancelar</button>'
+          : fijo || yo ? '' : '<button class="abtn abtn--ghost det__eliminar" type="button" id="mBorrar">Eliminar miembro</button>'}
+      </div>
+      <div id="mCredencial"></div>
+    </form>
+    ${nuevo ? '' : `
+    <form class="ficha ficha__extra" id="formClave" novalidate>
+      <h3 class="ficha__h3">Restablecer contraseña</h3>
+      <div class="ficha__rejilla">
+        <label class="afield"><span>Contraseña nueva</span>
+          <span class="clave__fila"><input id="mClaveNueva" autocomplete="new-password" spellcheck="false" value="${generarClave()}" />
+          <button class="abtn abtn--ghost abtn--sm" type="button" data-generar="mClaveNueva">Otra</button></span></label>
+        ${yo ? '' : '<label class="casilla casilla--sola"><input type="checkbox" id="mClaveDebe" checked /> Que la cambie al entrar</label>'}
+      </div>
+      <p class="ficha__estado" id="mClaveMsg"></p>
+      <div class="ficha__botones"><button class="abtn abtn--ghost" type="submit" id="mClaveBtn">Poner esta contraseña</button></div>
+      <div id="mClaveCredencial"></div>
+    </form>`}`;
+
+  const rol = $('mRol');
+  const modulos = () => {
+    const todos = rol.value === 'admin';
+    $('mModulos').querySelectorAll('input').forEach((c) => { if (todos) c.checked = true; c.disabled = todos || fijo || yo; });
+  };
+  rol.addEventListener('change', modulos);
+  modulos();
+  $('fichaMiembro').querySelectorAll('[data-generar]').forEach((b) =>
+    b.addEventListener('click', () => { $(b.dataset.generar).value = generarClave(); }));
+  $('formMiembro').addEventListener('submit', (e) => { e.preventDefault(); guardarMiembro(nuevo ? null : m); });
+  if (nuevo) $('mCancelar').addEventListener('click', () => { miembroElegido = null; pintarEquipo(); fichaMiembro0(); });
+  const borrar = $('mBorrar');
+  if (borrar) borrar.addEventListener('click', () => borrarMiembro(m));
+  const fc = $('formClave');
+  if (fc) fc.addEventListener('submit', (e) => { e.preventDefault(); ponerClave(m); });
+}
+function fichaMiembro0() {
+  $('fichaMiembro').innerHTML = '<p class="detalle__vacio">Elige a alguien del equipo, o da de alta a un miembro nuevo.</p>';
+}
+$('nuevoMiembro').addEventListener('click', () => { miembroElegido = null; pintarEquipo(); fichaMiembro(null); });
+
+// Los datos para entrar se enseñan una vez, para pasárselos a la persona
+function credencial(host, usuario, clave) {
+  host.innerHTML = `<div class="credencial">
+    <p>Pásale estos datos para entrar en <b>moyacompany.com/admin</b>:</p>
+    <p class="credencial__datos">Usuario: <b>${escapar(usuario)}</b><br>Contraseña: <b>${escapar(clave)}</b></p>
+    <button class="abtn abtn--ghost abtn--sm" type="button">Copiar</button></div>`;
+  host.querySelector('button').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText(`Panel de Moya & Company: https://moyacompany.com/admin\nUsuario: ${usuario}\nContraseña: ${clave}`);
+      e.target.textContent = 'Copiado';
+    } catch (_) { e.target.textContent = 'No se pudo copiar'; }
+  });
+}
+
+async function guardarMiembro(m) {
+  const msg = $('mMsg'), btn = $('mGuardar');
+  const cuerpo = {
+    nombre: $('mNombre').value.trim(),
+    rol: $('mRol').value,
+    permisos: [...$('mModulos').querySelectorAll('input:checked')].map((c) => c.value),
+    numero: $('mNumero').value.trim() || null,
+    acceso_hasta: $('mVence').value || null
+  };
+  if (!m) Object.assign(cuerpo, { accion: 'crear', usuario: $('mUsuario').value.trim(),
+                                  contrasena: $('mClave').value, debe_cambiar: $('mDebe').checked });
+  else Object.assign(cuerpo, { accion: 'editar', user_id: m.user_id, activo: $('mActivo') ? $('mActivo').checked : true });
+  btn.disabled = true; msg.textContent = 'Guardando…';
+  try {
+    const r = await llamarEquipo(cuerpo);
+    if (!m) {
+      miembroElegido = r.user_id;
+      const usuario = cuerpo.usuario.toLowerCase(), clave = cuerpo.contrasena;
+      await cargarEquipo();
+      credencial($('mCredencial'), usuario, clave);
+      $('mMsg').textContent = 'Listo: ya puede entrar.';
+    } else {
+      await cargarEquipo();
+      $('mMsg').textContent = 'Cambios guardados.';
+    }
+  } catch (e) {
+    msg.textContent = e.message;
+    btn.disabled = false;
+  }
+}
+
+async function ponerClave(m) {
+  const msg = $('mClaveMsg'), btn = $('mClaveBtn');
+  const clave = $('mClaveNueva').value;
+  btn.disabled = true; msg.textContent = 'Guardando…';
+  try {
+    await llamarEquipo({ accion: 'contrasena', user_id: m.user_id, contrasena: clave,
+                         debe_cambiar: $('mClaveDebe') ? $('mClaveDebe').checked : false });
+    msg.textContent = 'Contraseña cambiada.';
+    credencial($('mClaveCredencial'), m.usuario, clave);
+  } catch (e) { msg.textContent = e.message; }
+  btn.disabled = false;
+}
+
+async function borrarMiembro(m) {
+  if (!confirm(`¿Eliminar a ${m.nombre || m.usuario}? Ya no podrá entrar al panel. Sus llamadas se quedan en el CRM. No se puede deshacer.`)) return;
+  try {
+    await llamarEquipo({ accion: 'eliminar', user_id: m.user_id });
+    miembroElegido = null;
+    fichaMiembro0();
+    await cargarEquipo();
+    aviso((m.nombre || m.usuario) + ' ya no tiene acceso al panel.');
+  } catch (e) { aviso('<b>No se pudo eliminar.</b> ' + escapar(e.message), 'error'); }
+}
 
 arranque();

@@ -702,3 +702,41 @@ button,.tecla,.fila,.tab{touch-action:manipulation}
   .deshacer{top:auto;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + .7rem)}
   body:has(.enllamada:not([hidden])) .main{padding-bottom:9rem}
 }
+
+/* ---------- equipo ---------- */
+.avatar{flex:0 0 auto;width:2.3rem;height:2.3rem;display:grid;place-items:center;border-radius:50%;
+  font-weight:700;font-size:.9rem;color:var(--blue);background:var(--blue-100)}
+.casillas{margin:0;padding:0;border:0;min-width:0}
+.casillas__lista{display:flex;flex-wrap:wrap;gap:.5rem}
+.casilla{display:inline-flex;align-items:center;gap:.5rem;padding:.55rem .85rem;border-radius:12px;
+  border:1px solid var(--line);background:#fbfcff;font-size:.88rem;color:var(--navy);cursor:pointer}
+.casilla input{width:1.05rem;height:1.05rem;accent-color:var(--blue);margin:0}
+.casilla:has(input:disabled){opacity:.65;cursor:default}
+.casilla--sola{align-self:end;border:0;background:none;padding:.55rem 0}
+.clave__fila{display:flex;gap:.5rem;align-items:center}
+.clave__fila input{flex:1;min-width:0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.04em}
+.ficha__nota{margin:0;font-size:.82rem;color:var(--ink-soft)}
+.credencial{display:grid;gap:.5rem;justify-items:start;margin-top:.2rem;padding:1rem 1.1rem;border-radius:16px;
+  background:#eefaf2;border:1px solid #bfe3cc;font-size:.88rem;color:#14612f}
+.credencial p{margin:0}
+.credencial__datos{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--navy);line-height:1.7}
+
+/* ---------- cambiar mi contraseña ---------- */
+.clave{position:fixed;inset:0;z-index:60;display:grid;place-items:center;padding:1rem;
+  background:rgba(8,18,53,.45);overflow-y:auto}
+.clave__card{width:min(400px,100%)}
+.clave__sub{margin:-.2rem 0 .3rem;text-align:center;font-size:.86rem;line-height:1.55;color:var(--ink-dim)}
+
+/* ---------- menú de la cuenta (escritorio) ---------- */
+.cuenta{position:relative}
+.cuenta__btn{list-style:none;gap:.4rem}
+.cuenta__btn::-webkit-details-marker{display:none}
+.cuenta__btn::after{content:"";width:.45rem;height:.45rem;margin-top:-.2rem;border:solid currentColor;
+  border-width:0 2px 2px 0;transform:rotate(45deg)}
+.cuenta .quien{color:var(--navy);font-weight:600;max-width:11rem}
+.cuenta__menu{position:absolute;right:0;top:calc(100% + .4rem);z-index:30;min-width:12rem;display:grid;padding:.4rem;
+  background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 18px 36px -18px rgba(9,30,110,.6)}
+.cuenta__item{padding:.65rem .8rem;border:0;border-radius:10px;background:none;cursor:pointer;text-align:left;
+  font-size:.88rem;color:var(--navy)}
+.cuenta__item:hover{background:#f3f6ff}
+.cuenta__item--salir{color:var(--bad)}
