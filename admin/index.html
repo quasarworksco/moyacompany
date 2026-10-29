@@ -29,9 +29,9 @@
     <p class="gate__sub">Acceso restringido</p>
 
     <label class="afield">
-      <span>Correo</span>
-      <input type="email" id="email" autocomplete="username" autocapitalize="none"
-             spellcheck="false" required placeholder="tucorreo@moyacompanytx.com" />
+      <span>Usuario o correo</span>
+      <input type="text" id="email" autocomplete="username" autocapitalize="none"
+             spellcheck="false" required placeholder="tu usuario o tu correo" />
     </label>
     <label class="afield">
       <span>Contraseña</span>
@@ -47,6 +47,27 @@
 </div>
 
 <div class="cargando" id="cargando">Cargando…</div>
+
+<!-- ============ CAMBIAR MI CONTRASEÑA ============
+     Obligatorio cuando la puso la administradora; si no, se abre desde
+     «Mi contraseña» y se puede cerrar. -->
+<div class="clave" id="clave" role="dialog" aria-modal="true" aria-labelledby="claveTitulo" hidden>
+  <form class="gate__card clave__card" id="claveForm" novalidate>
+    <h1 class="gate__title" id="claveTitulo">Cambia tu contraseña</h1>
+    <p class="clave__sub" id="claveSub">Elige una contraseña tuya para seguir.</p>
+    <label class="afield">
+      <span>Nueva contraseña</span>
+      <input type="password" id="claveNueva" autocomplete="new-password" minlength="8" required />
+    </label>
+    <label class="afield">
+      <span>Repítela</span>
+      <input type="password" id="claveOtra" autocomplete="new-password" minlength="8" required />
+    </label>
+    <p class="gate__error" id="claveError" role="alert" hidden></p>
+    <button class="abtn abtn--primary abtn--block" type="submit" id="claveBtn">Guardar contraseña</button>
+    <button class="gate__link" type="button" id="claveCerrar">Cancelar</button>
+  </form>
+</div>
 
 <!-- ============ PANEL ============ -->
 <div class="app" id="app" hidden>
@@ -67,12 +88,18 @@
         <button class="tab" type="button" data-vista="contenido"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="9.5" r="1.8"/><path d="m21 16-5-5-9 9"/></svg><span class="tab__largo">Contenido</span><span class="tab__corto">Contenido</span></button>
         <button class="tab tab--extra" type="button" data-vista="redes"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1"/></svg><span class="tab__largo">Redes</span><span class="tab__corto">Redes</span></button>
         <button class="tab tab--extra" type="button" data-vista="ajustes" hidden><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg><span class="tab__largo">Ajustes</span><span class="tab__corto">Ajustes</span></button>
+        <button class="tab tab--extra" type="button" data-vista="equipo" hidden><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="4.8" cy="10" r="2.2"/><circle cx="19.2" cy="10" r="2.2"/></svg><span class="tab__largo">Equipo</span><span class="tab__corto">Equipo</span></button>
         <!-- sólo en el móvil: lo que no cabe en la barra de abajo -->
         <button class="tab tab--mas" type="button" id="btnMas" aria-haspopup="menu" aria-expanded="false"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg><span class="tab__corto">Más</span></button>
       </nav>
       <div class="topbar__actions">
-        <span class="quien" id="quien"></span>
-        <button class="abtn abtn--ghost" type="button" id="logout">Salir</button>
+        <details class="cuenta" id="cuenta">
+          <summary class="abtn abtn--ghost cuenta__btn"><span class="quien" id="quien"></span></summary>
+          <div class="cuenta__menu">
+            <button class="cuenta__item" type="button" id="miContrasena">Mi contraseña</button>
+            <button class="cuenta__item cuenta__item--salir" type="button" id="logout">Salir</button>
+          </div>
+        </details>
       </div>
     </div>
   </header>
@@ -85,6 +112,8 @@
       <button class="mas__item" type="button" role="menuitem" data-vista="metricas"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V11M10 20V5M16 20v-6M21 20H3"/></svg>Métricas</button>
       <button class="mas__item" type="button" role="menuitem" data-vista="redes"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="m8.2 10.8 7.6-4.1M8.2 13.2l7.6 4.1"/></svg>Redes</button>
       <button class="mas__item" type="button" role="menuitem" data-vista="ajustes"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0"/><circle cx="16" cy="6" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="18" r="2"/></svg>Ajustes</button>
+      <button class="mas__item" type="button" role="menuitem" data-vista="equipo"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.2"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0"/><circle cx="4.8" cy="10" r="2.2"/><circle cx="19.2" cy="10" r="2.2"/></svg>Equipo</button>
+      <button class="mas__item" type="button" role="menuitem" id="miContrasenaMovil"><svg class="tab__ico" viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="10.5" width="15" height="10" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>Mi contraseña</button>
       <button class="mas__item mas__item--salir" type="button" role="menuitem" id="logoutMovil">Salir</button>
     </div>
   </div>
@@ -353,7 +382,29 @@
       <div id="autopilot"></div>
     </div>
 
-    <!-- ---------- AJUSTES (sólo rol admin) ---------- -->
+    <!-- ---------- EQUIPO (sólo la cuenta principal) ---------- -->
+    <div class="vista" id="vista-equipo" hidden>
+      <div class="vista__head">
+        <div>
+          <h1 class="vista__title">Equipo</h1>
+          <p class="vista__sub" id="equipoResumen">Quién entra al panel, qué puede ver y con qué número llama.</p>
+        </div>
+        <div class="vista__acciones">
+          <button class="abtn abtn--primary" type="button" id="nuevoMiembro">Nuevo miembro</button>
+        </div>
+      </div>
+      <div class="cols">
+        <section class="panel cols__lista">
+          <header class="panel__head"><h2 class="panel__title">Miembros</h2></header>
+          <ul class="lista lista--alta" id="listaEquipo"></ul>
+        </section>
+        <section class="panel detalle" id="fichaMiembro">
+          <p class="detalle__vacio">Elige a alguien del equipo, o da de alta a un miembro nuevo.</p>
+        </section>
+      </div>
+    </div>
+
+    <!-- ---------- AJUSTES (sólo la cuenta principal) ---------- -->
     <div class="vista" id="vista-ajustes" hidden>
       <div class="vista__head">
         <div>

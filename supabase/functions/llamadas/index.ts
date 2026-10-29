@@ -200,6 +200,18 @@ async function probar(): Promise<Revision[]> {
   return r;
 }
 
+/* ---------- Líneas del equipo ----------
+   Cada miembro puede tener su número de Twilio (admins.numero): sus llamadas
+   salen con ese número y las que entran a él le suenan sólo a esa persona. */
+type Miembro = { user_id: string; nombre: string | null; rol: string; permisos: string[] | null;
+                 numero: string | null; acceso_hasta: string | null };
+async function equipoActivo(db: SupabaseClient) {
+  const { data } = await db.from('admins').select('user_id,nombre,rol,permisos,numero,acceso_hasta').eq('activo', true);
+  const hoy = new Date().toISOString().slice(0, 10);
+  return ((data || []) as Miembro[]).filter((a) => !a.acceso_hasta || a.acceso_hasta >= hoy);
+}
+const atiende = (a: Miembro) => a.rol === 'admin' || (a.permisos || []).includes('llamadas');
+
 /* ---------- Grabación ----------
    Todas las llamadas se graban, sin aviso: Moya está en Texas, que es de
    consentimiento de una parte. Decisión de Moya.                         */
@@ -316,7 +328,10 @@ async function twilioEvento(req: Request, db: SupabaseClient, evento: string) {
     if (!l || !to || l.estado !== 'iniciando') return xml(decirEs('No se pudo hacer la llamada.'));
     await db.from('llamadas').update({ estado: 'sonando', proveedor_id: p.get('CallSid'), numero: to }).eq('id', l.id);
     const u = (ev: string) => esc(BASE + '?evento=' + ev + '&id=' + l.id);
-    return xml(`<Dial callerId="${esc(e164(K.TWILIO_NUMERO) || K.TWILIO_NUMERO)}" answerOnBridge="true" timeout="30" action="${u('fin')}"` +
+    // From llega como client:<identidad> del token: dice quién marca
+    const quien = (await equipoActivo(db)).find((a) => 'client:' + identidad(a.user_id) === p.get('From'));
+    const callerId = quien?.numero || e164(K.TWILIO_NUMERO) || K.TWILIO_NUMERO;
+    return xml(`<Dial callerId="${esc(callerId)}" answerOnBridge="true" timeout="30" action="${u('fin')}"` +
       ` record="record-from-answer-dual" recordingStatusCallback="${u('grabacion')}" recordingStatusCallbackEvent="completed">` +
       `<Number statusCallbackEvent="answered" statusCallback="${u('estado')}">${esc(to)}</Number></Dial>`);
   }
@@ -324,12 +339,14 @@ async function twilioEvento(req: Request, db: SupabaseClient, evento: string) {
   if (evento === 'entrante') {
     const desde = e164(p.get('From')) || p.get('From') || '';
     const c = await contactoPorNumero(db, desde);
+    // Al número de un miembro le suena sólo a esa persona; al de Moya, a todo el que atiende llamadas
+    const equipo = await equipoActivo(db);
+    const linea = equipo.find((a) => a.numero && a.numero === e164(p.get('To')));
+    const quienes = (linea ? [linea] : equipo.filter(atiende)).slice(0, 10);
     const { data: l } = await db.from('llamadas').insert({
       direccion: 'entrante', canal: 'telefono', numero: desde, contacto_id: c?.id || null,
-      usuario: null, estado: 'sonando', proveedor_id: p.get('CallSid'), con_aviso: false
+      usuario: linea?.user_id || null, estado: 'sonando', proveedor_id: p.get('CallSid'), con_aviso: false
     }).select('id').single();
-    const { data: eq } = await db.from('admins').select('user_id,rol,permisos').eq('activo', true);
-    const quienes = (eq || []).filter((a) => a.rol === 'admin' || (a.permisos || []).includes('llamadas')).slice(0, 10);
     const u = (ev: string) => esc(BASE + '?evento=' + ev + '&id=' + (l?.id || ''));
     return xml(
       `<Dial timeout="25" answerOnBridge="true" action="${u('fin')}" record="record-from-answer-dual" recordingStatusCallback="${u('grabacion')}" recordingStatusCallbackEvent="completed">` +
@@ -377,8 +394,10 @@ async function twilioEvento(req: Request, db: SupabaseClient, evento: string) {
     const fotos = parseInt(p.get('NumMedia') || '0', 10) || 0;
     const texto = (p.get('Body') || '').trim() +
       (fotos ? `\n(${fotos} ${fotos === 1 ? 'archivo adjunto' : 'archivos adjuntos'}, sólo visibles en Twilio)` : '');
+    const linea = (await equipoActivo(db)).find((a) => a.numero && a.numero === e164(p.get('To')));
     const { error } = await db.from('mensajes').insert({
-      contacto_id: c?.id || null, canal: 'sms', asunto: 'SMS de ' + desde,
+      contacto_id: c?.id || null, canal: 'sms',
+      asunto: 'SMS de ' + desde + (linea ? ' · línea de ' + (linea.nombre || linea.numero) : ''),
       texto: (texto.trim() || '(SMS vacío)').slice(0, 4000), proveedor_id: sid || null
     });
     // 23505: Twilio reintentó un SMS que ya estaba guardado
